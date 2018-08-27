@@ -55,6 +55,8 @@ class Rule(models.Model):
     ruletype = models.CharField(max_length=1,choices = Type_CHOICES,verbose_name="Rule type")
     def __str__(self):
         return self.title
+    class Meta:
+        permissions = (("run_rules","Can run decision making process"),("manage_rules","Can make/change/delete rules"),)
 
 class MonitoringInfo(models.Model):
     heartratebeat = models.SmallIntegerField(verbose_name="Heartbeat rate")
