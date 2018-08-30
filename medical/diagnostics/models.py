@@ -58,31 +58,31 @@ class Rule(models.Model):
     class Meta:
         permissions = (("run_rules","Can run decision making process"),("manage_rules","Can make/change/delete rules"),)
 
-class MonitoringInfo(models.Model):
-    heartratebeat = models.SmallIntegerField(verbose_name="Heartbeat rate")
-    oxygenlevel = models.SmallIntegerField(verbose_name="Level of oxygen in blood")
-    liquidlevel = models.SmallIntegerField(verbose_name="Amount of urine produced")
-    time = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return str(self.time)
-
 class Patient(models.Model):
     name = models.CharField(max_length= 50,verbose_name="Name")
     surname = models.CharField(max_length = 50,verbose_name="Surname")
     alergymed = models.ManyToManyField(Medicine,verbose_name="Allergic to medicines", blank=True)
     alergying = models.ManyToManyField(Ingredient,verbose_name="Allergic to ingredients", blank=True)
-    monitoring = models.ManyToManyField(MonitoringInfo,verbose_name="Monitoring data records", blank=True)
     def __str__(self):
         return self.name + " " + self.surname + " Id:" + str(self.id)
+
+class MonitoringInfo(models.Model):
+    heartratebeat = models.SmallIntegerField(verbose_name="Heartbeat rate")
+    oxygenlevel = models.SmallIntegerField(verbose_name="Level of oxygen in blood")
+    liquidlevel = models.SmallIntegerField(verbose_name="Amount of urine produced")
+    patient = models.ForeignKey(Patient,verbouse_name="Patient",on_delete=models.CASCADE)
+    time = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return str(self.time)
 
 class Diagnosis(models.Model):
     medicine = models.ManyToManyField(Medicine,verbose_name="Prescribed medicines")
     highTemp = models.BooleanField(verbose_name="User had high temperature")
     temp = models.SmallIntegerField(verbose_name="Temperature", blank=True)
+    syndromes = models.ManyToManyField(Syndrome,verbose_name="Patient syndromes")
     disease = models.ForeignKey(Disease, on_delete=models.CASCADE,verbose_name="Diagnosed disease")
     doctor = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Doctor responsable for diagnosis")
     patient = models.ForeignKey(Patient,on_delete=models.CASCADE, verbose_name="Patient")
-    chance = models.SmallIntegerField(blank=True, verbose_name="Certainty that patient has a disease")
     time = models.DateTimeField(auto_now=True)
     def str(self):
         return self.disease.name
