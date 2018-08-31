@@ -121,13 +121,100 @@ class SyndromeActions(BaseActions):
 
 #for finding which disease might be a problem rules
 class DiseaseVariables(BaseVariables):
-    def __init__(self,diagnosis,disease):
+    def __init__(self,diagnosis,helper):
         self.diagnosis = diagnosis
-        self.disease = disease
+        self.helper = helper
+    def getSyndromesNames(self):
+        result = []
+        for syndrome in self.diagnosis.syndromes:
+            result.append(syndrome.name)
+        return result
+    def getTemperature(self):
+        return self.diagnosis.temp
+    def hasTemperature(self):
+        return self.diagnosis.highTemp
+    def hadDisease(self,diseaseName,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
+            if diagnostics.disease.name == diseaseName:
+                results.append(diagnostics.disease.id)
+        return len(results)
+    def hadSyndrome(self,syndromeName,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
+            for syndrome in diagnostics.syndromes:
+                if syndrome.name == syndromeName:
+                    results.append(diagnostics.id)
+                    break
+        return len(results)
+    def hadTemperature(self,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
+            if diagnostics.highTemp:
+                results.append(diagnostics.id)
+        return len(results)
+    def hadTemperatureAbove(self,amount,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
+            if diagnostics.temp > amount:
+                results.append(diagnostics.id)
+        return len(results)
+    def hadMedicineType(self,typeOfMedicine,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
+            for medicine in diagnostics.medicine:
+                if medicine.medtype == typeOfMedicine:
+                    results.append(diagnostics.id)
+                    break
+        return len(results)
+    def getSyndCount(self):
+        return self.helper.regSyndCount + self.helper.strSyndCount
+    def getBestSyndCount(self):
+        return self.helper.bestRegSyndCount + self.helper.bestStrSyndCount
+    def getPercent(self):
+        return self.helper.percent
+    def getBestPercent(self):
+        return self.helper.bestPercent
+    def getSpecSyndCount(self):
+        return self.helper.strSyndCount
+    def getBestSpecSyndCount(self):
+        return self.helper.bestStrSyndCount
+    def getRegSyndCount(self):
+        return self.helper.regSyndCount
+    def getBestRegSyndCount(self):
+        return self.helper.strSyndCount
+    def getDiseaseName(self):
+        return self.helper.diseaseName
+
 
 class DiseaseActions(BaseActions):
-    def __init__(self):
-        self.alarm = False
+    def __init__(self,helper):
+        self.helper = helper
+    def setRsynCount(self,number):
+        self.helper.regSyndCount = number
+    def setSsynCount(self,number):
+        self.helper.strSyndCount = number
+    def incRsynCount(self):
+        self.helper.regSyndCount = self.helper.regSyndCount + 1
+    def incSsynCount(self):
+        self.helper.strSyndCount = self.helper.strSyndCount + 1
+    def setDiseaseName(self,name):
+        self.helper.diseaseName = name
+    def setPerc(self,percentage):
+        self.helper.percent = percentage
+    def incPercBy(self,amount):
+        self.helper.percent = self.helper.percent + amount
+    def setBestSsyn(self,number):
+        self.helper.bestStrSyndCount = number
+    def setBestRsyn(self,number):
+        self.helper.bestRegSyndCount = number
+    def setBestPerc(self,percentage):
+        self.helper.bestPercent = percentage
 
 #for finding patient data rules
 class PatientVariables(BaseVariables):

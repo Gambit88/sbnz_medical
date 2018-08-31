@@ -87,6 +87,15 @@ class Diagnosis(models.Model):
     def str(self):
         return self.disease.name
 
+class rezonerHelper():
+    def __init__(self):
+        self.regSyndCount = 0
+        self.strSyndCount = 0
+        self.percent = 0
+        self.bestPercent = 0
+        self.bestRegSyndCount = 0
+        self.bestStrSyndCount = 0
+        self.diseaseName = ""
 
 
 
