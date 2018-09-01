@@ -1,4 +1,4 @@
-from business_rules.variables import BaseVariables,select_multiple_rule_variable,select_rule_variable,string_rule_variable,numeric_rule_variable
+from business_rules.variables import BaseVariables,select_multiple_rule_variable,select_rule_variable,string_rule_variable,numeric_rule_variable,boolean_rule_variable
 from business_rules.actions import BaseActions,rule_action
 from business_rules.fields import FIELD_SELECT_MULTIPLE,FIELD_NUMERIC
 
@@ -124,15 +124,19 @@ class DiseaseVariables(BaseVariables):
     def __init__(self,diagnosis,helper):
         self.diagnosis = diagnosis
         self.helper = helper
+    @select_multiple_rule_variable(label="List of inputed syndrome names")
     def getSyndromesNames(self):
         result = []
         for syndrome in self.diagnosis.syndromes:
             result.append(syndrome.name)
         return result
+    @numeric_rule_variable(label="Temperature in *C")
     def getTemperature(self):
         return self.diagnosis.temp
+    @boolean_rule_variable(label="Patient has temperature")
     def hasTemperature(self):
         return self.diagnosis.highTemp
+    #OVO PRAVILO
     def hadDisease(self,diseaseName,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -140,6 +144,7 @@ class DiseaseVariables(BaseVariables):
             if diagnostics.disease.name == diseaseName:
                 results.append(diagnostics.disease.id)
         return len(results)
+    #OVO PRAVILO
     def hadSyndrome(self,syndromeName,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -149,6 +154,7 @@ class DiseaseVariables(BaseVariables):
                     results.append(diagnostics.id)
                     break
         return len(results)
+    #OVO PRAVILO
     def hadTemperature(self,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -156,6 +162,7 @@ class DiseaseVariables(BaseVariables):
             if diagnostics.highTemp:
                 results.append(diagnostics.id)
         return len(results)
+    #OVO PRAVILO
     def hadTemperatureAbove(self,amount,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -163,6 +170,7 @@ class DiseaseVariables(BaseVariables):
             if diagnostics.temp > amount:
                 results.append(diagnostics.id)
         return len(results)
+    #OVO PRAVILO
     def hadMedicineType(self,typeOfMedicine,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -172,22 +180,31 @@ class DiseaseVariables(BaseVariables):
                     results.append(diagnostics.id)
                     break
         return len(results)
+    @numeric_rule_variable(label="Number of syndromes connected to current disease")
     def getSyndCount(self):
         return self.helper.regSyndCount + self.helper.strSyndCount
+    @numeric_rule_variable(label="Number of syndromes connected to most likely diagnosed disease")
     def getBestSyndCount(self):
         return self.helper.bestRegSyndCount + self.helper.bestStrSyndCount
+    @numeric_rule_variable(label="Probability connected to diagnosing current disease")
     def getPercent(self):
         return self.helper.percent
+    @numeric_rule_variable(label="Probability connected to diagnosing most likely diagnosed disease")
     def getBestPercent(self):
         return self.helper.bestPercent
+    @numeric_rule_variable(label="Number of strong syndromes connected to current disease")
     def getSpecSyndCount(self):
         return self.helper.strSyndCount
+    @numeric_rule_variable(label="Number of strong syndromes connected to most likely diagnosed disease")
     def getBestSpecSyndCount(self):
         return self.helper.bestStrSyndCount
+    @numeric_rule_variable(label="Number of regular syndromes connected to current disease")
     def getRegSyndCount(self):
         return self.helper.regSyndCount
+    @numeric_rule_variable(label="Number of regular syndromes connected to most likely diagnosed disease")
     def getBestRegSyndCount(self):
-        return self.helper.strSyndCount
+        return self.helper.bestRegSyndCount
+    @numeric_rule_variable(label="Name of most likely diagnosed disease")
     def getDiseaseName(self):
         return self.helper.diseaseName
 
@@ -195,24 +212,34 @@ class DiseaseVariables(BaseVariables):
 class DiseaseActions(BaseActions):
     def __init__(self,helper):
         self.helper = helper
+    @rule_action(label="Set regular syndromes of current disease")
     def setRsynCount(self,number):
         self.helper.regSyndCount = number
+    @rule_action(label="Set strong syndromes count of current disease")
     def setSsynCount(self,number):
         self.helper.strSyndCount = number
+    @rule_action(label="Increment regular syndromes count of current disease")
     def incRsynCount(self):
         self.helper.regSyndCount = self.helper.regSyndCount + 1
+    @rule_action(label="Increment strong syndromes count of current disease")
     def incSsynCount(self):
         self.helper.strSyndCount = self.helper.strSyndCount + 1
+    @rule_action(label="Set name of most likely diagnosed disease")
     def setDiseaseName(self,name):
         self.helper.diseaseName = name
+    @rule_action(label="Set percentage of current disease")
     def setPerc(self,percentage):
         self.helper.percent = percentage
+    @rule_action(label="Increse percentage of current disease")
     def incPercBy(self,amount):
         self.helper.percent = self.helper.percent + amount
+    @rule_action(label="Set strong syndromes count of most likely diagnosed disease")
     def setBestSsyn(self,number):
         self.helper.bestStrSyndCount = number
+    @rule_action(label="Set regular syndromes count of most likely diagnosed disease")
     def setBestRsyn(self,number):
         self.helper.bestRegSyndCount = number
+    @rule_action(label="Set percentage of most likely diagnosed disease")
     def setBestPerc(self,percentage):
         self.helper.bestPercent = percentage
 
@@ -220,6 +247,7 @@ class DiseaseActions(BaseActions):
 class PatientVariables(BaseVariables):
     def __init__(self,patient):
         self.patient = patient
+    #OVO PRAVILO
     def getRepetedDisNames(self,days,repeted):
         nameRepeatDict = {}
         results = []
@@ -236,6 +264,7 @@ class PatientVariables(BaseVariables):
             else:
                 return results
         return results
+    #OVO PRAVILO
     def getNumberofMedicinesByType(self,days,medicineType):
         results = 0
         timeFrame = datetime.now() - timedelta(days = days)
@@ -245,6 +274,7 @@ class PatientVariables(BaseVariables):
                     results = results + 1 
                     break
         return results
+    #OVO PRAVILO
     def getDoctorPrescribingMedByTypeCount(self,days,medicineType):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -256,6 +286,7 @@ class PatientVariables(BaseVariables):
                     else:
                         results.append(diagnostics.doctor.id)
         return len(results)
+    #OVO PRAVILO
     def getDiseaseNumByMedType(self,days,medicineType):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)

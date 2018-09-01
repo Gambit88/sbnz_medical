@@ -97,6 +97,16 @@ class rezonerHelper():
         self.bestStrSyndCount = 0
         self.diseaseName = ""
 
+class fileRule(models.Model):
+    label = models.CharField(max_length=150)
+    name = models.CharField(max_length = 150)
+    params = models.CharField(max_length = 1000)
+    extendedRule = models.CharField()
+    extendsRuleset = models.CharField()
 
+
+class ruleFileCreator(models.Model):
+    fileRules = models.ManyToManyField(fileRule)
+        
 
 

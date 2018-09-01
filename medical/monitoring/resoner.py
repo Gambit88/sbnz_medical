@@ -15,23 +15,23 @@ class PatientVariables(BaseVariables):
     @numeric_rule_variable(label="Amount of urin relieved")
     def getLiquidLevel(self):
         return self.monitoring.liquidlevel
-    @numeric_rule_variable(label="Amount of urin relieved in last n hours")
+    #@numeric_rule_variable(label="Amount of urin relieved in last n hours")#OVO PRAVILO
     def getTimedLiquidLevel(self,hours):
         summary = 0
         lastHours = datetime.now() - timedelta(hours = hours)
         for monitorings in self.patient.monitoring_set.filter(time__gt=lastHours):
             summary = summary + monitorings.liquidlevel
         return summary
-    @numeric_rule_variable(label="Number of hearthbeats in last n secounds")
+    #@numeric_rule_variable(label="Number of hearthbeats in last n secounds")#OVO PRAVILO
     def getHearthRate(self,secounds):
         return (self.monitoring.heartratebeat/60)*secounds
-    @boolean_rule_variable(label="x disease is in patients records history")
+    #@boolean_rule_variable(label="x disease is in patients records history")#OVO PRAVILO
     def checkDiseaseInHistory(self,disease):
         for diagnosis in self.patient.diagnostics_set.all():
             if disease == diagnosis.disease.name:
                 return True
         return  False
-    @boolean_rule_variable(label="Oxygen level went up in last x minutes")
+    #@boolean_rule_variable(label="Oxygen level went up in last x minutes")#OVO PRAVILO
     def oxygenWentUp(self,minutes):
         timeFrame = datetime.now() - timedelta(minutes = minutes)
         tmpLevel = None
@@ -42,7 +42,7 @@ class PatientVariables(BaseVariables):
             else:
                 tmpLevel = monitorings.oxygenlevel
         return False
-    @boolean_rule_variable(label="Oxygen level went down in last x minutes")    
+    #@boolean_rule_variable(label="Oxygen level went down in last x minutes")#OVO PRAVILO
     def oxygenWentDown(self,minutes):
         timeFrame = datetime.now() - timedelta(minutes = minutes)
         tmpLevel = None
