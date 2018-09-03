@@ -98,13 +98,48 @@ class rezonerHelper():
         self.diseaseName = ""
 
 class fileRule(models.Model):
-    label = models.CharField(max_length=150)
-    name = models.CharField(max_length = 150)
     params = models.CharField(max_length = 1000)
-    extendedRule = models.CharField()
-    extendsRuleset = models.CharField()
+    monitoringVariable='monv'
+    patientVariable='patv'
+    diseaseVariable='disv'
+    ruleTLL = 'mv_tll'
+    ruleHR = 'mv_htr'
+    ruleDIH = 'mv_dih'
+    ruleOWU = 'mv_owu'
+    ruleOWD = 'mv_owd'
+    ruleHDC = 'dv_hdc'
+    ruleHSC = 'dv_hsc'
+    ruleHTC = 'dv_htc'
+    ruleHTAC = 'dv_tac'
+    ruleHMTC = 'dv_hmc'
+    ruleRDN = 'pv_rdn'
+    ruleNMT = 'pv_cmt'
+    ruleDPMT = 'pv_dpc'
+    ruleDNMT = 'pv_dmc'
 
-
+    Rule_CHOICES = (
+		(ruleTLL, '(Monitoring ruleset) Amount of urin relieved in last (n) hours. (Params: time_in_hours)'),
+		(ruleHR, '(Monitoring ruleset) Number of hearthbeats in last (n) secounds. (Params: time_in_secounds)'),
+		(ruleDIH, '(Monitoring ruleset) (x) disease is in patients records history. (Params: disease_name)'),
+		(ruleOWU, '(Monitoring ruleset) Oxygen level went up in last (n) minutes. (Params: time_in_minutes)'),
+		(ruleOWD, '(Monitoring ruleset) Oxygen level went down in last (n) minutes. (Params: time_in_minutes)'),
+		(ruleHDC, '(Disease detection ruleset) Patient had (x) diagnosed multiple times in last (n) days. (Params: disease_name,number_of_days)'),
+		(ruleHSC, '(Disease detection ruleset) Patient had (x) syndrome multiple times in last (n) days. (Params: syndrome_name,number_of_days)'),
+		(ruleHTC, '(Disease detection ruleset) Patient had high temperature multiple times in last (n) days. (Params: number_of_days)'),
+		(ruleHTAC, '(Disease detection ruleset) Patient had temperature above (x) multiple times in last (n) days. (Params: temperature,number_of_days)'),
+		(ruleHMTC, '(Disease detection ruleset) Patient had medicine that is (x) prescribed multiple times in last (n) days. (Params: medicine_type,number_of_days)'),
+		(ruleRDN, '(Patient data finding ruleset) Names of diseases that had repeated (x) times in last (n) days. (Params: number_of_repeats,number_of_days)'),
+		(ruleNMT, '(Patient data finding ruleset) Number of medicines of (x) type prescribed in last (n) days. (Params: medicine_type,number_of_days)'),
+		(ruleDPMT, '(Patient data finding ruleset) Number of different doctors prescribing medicine of (x) type in last (n) days (Params: medicine_type,number_of_days)'),
+		(ruleDNMT, '(Patient data finding ruleset) Number of diseases that had medicine of (x) type prescribed in last (n) days (Params: medicine_type,number_of_days)'),
+		)
+    Ruleset_CHOICES = (
+        (monitoringVariable,"Extends monitoring ruleset"),
+        (patientVariable,"Extends patient data finding ruleset"),
+        (diseaseVariable,"Extends disease detection ruleset"),
+    )
+    extendedRule = models.CharField(max_length=6)
+    extendsRuleset = models.CharField(max_length=4)
 class ruleFileCreator(models.Model):
     fileRules = models.ManyToManyField(fileRule)
         

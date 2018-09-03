@@ -136,7 +136,7 @@ class DiseaseVariables(BaseVariables):
     @boolean_rule_variable(label="Patient has temperature")
     def hasTemperature(self):
         return self.diagnosis.highTemp
-    #OVO PRAVILO
+    #OVO PRAVILO@numeric_rule_variable(label='')
     def hadDisease(self,diseaseName,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -248,7 +248,7 @@ class PatientVariables(BaseVariables):
     def __init__(self,patient):
         self.patient = patient
     #OVO PRAVILO
-    def getRepetedDisNames(self,days,repeted):
+    def getRepetedDisNames(self,repeted,days):
         nameRepeatDict = {}
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
@@ -265,7 +265,7 @@ class PatientVariables(BaseVariables):
                 return results
         return results
     #OVO PRAVILO
-    def getNumberofMedicinesByType(self,days,medicineType):
+    def getNumberofMedicinesByType(self,medicineType,days):
         results = 0
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
@@ -275,7 +275,7 @@ class PatientVariables(BaseVariables):
                     break
         return results
     #OVO PRAVILO
-    def getDoctorPrescribingMedByTypeCount(self,days,medicineType):
+    def getDoctorPrescribingMedByTypeCount(self,medicineType,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
@@ -287,7 +287,7 @@ class PatientVariables(BaseVariables):
                         results.append(diagnostics.doctor.id)
         return len(results)
     #OVO PRAVILO
-    def getDiseaseNumByMedType(self,days,medicineType):
+    def getDiseaseNumByMedType(self,medicineType,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):

@@ -5,7 +5,7 @@ from business_rules.fields import FIELD_NUMERIC
 from datetime import datetime, timedelta
 
 #for monitoring rules
-class PatientVariables(BaseVariables):
+class MonitoringVariables(BaseVariables):
     def __init__(self,monitoring,patient):
         self.monitoring = monitoring
         self.patient = patient
@@ -54,7 +54,7 @@ class PatientVariables(BaseVariables):
                 tmpLevel = monitorings.oxygenlevel
         return False
 
-class PatientActions(BaseActions):
+class MonitoringActions(BaseActions):
     def __init__(self):
         self.alarm = False
     @rule_action(label='Activate alarm')
