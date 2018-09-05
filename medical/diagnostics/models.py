@@ -70,7 +70,7 @@ class MonitoringInfo(models.Model):
     heartratebeat = models.SmallIntegerField(verbose_name="Heartbeat rate")
     oxygenlevel = models.SmallIntegerField(verbose_name="Level of oxygen in blood")
     liquidlevel = models.SmallIntegerField(verbose_name="Amount of urine produced")
-    patient = models.ForeignKey(Patient,verbouse_name="Patient",on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient,on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now=True)
     def __str__(self):
         return str(self.time)
@@ -87,7 +87,7 @@ class Diagnosis(models.Model):
     def str(self):
         return self.disease.name
 
-class rezonerHelper():
+class RezonerHelper():
     def __init__(self):
         self.regSyndCount = 0
         self.strSyndCount = 0
@@ -97,7 +97,7 @@ class rezonerHelper():
         self.bestStrSyndCount = 0
         self.diseaseName = ""
 
-class fileRule(models.Model):
+class FileRule(models.Model):
     params = models.CharField(max_length = 1000)
     monitoringVariable='monv'
     patientVariable='patv'
@@ -138,10 +138,8 @@ class fileRule(models.Model):
         (patientVariable,"Extends patient data finding ruleset"),
         (diseaseVariable,"Extends disease detection ruleset"),
     )
-    extendedRule = models.CharField(max_length=6)
-    extendsRuleset = models.CharField(max_length=4)
-class ruleFileCreator(models.Model):
-    fileRules = models.ManyToManyField(fileRule)
+    extendedRule = models.CharField(max_length=6,choices = Rule_CHOICES,verbose_name="Extended rule")
+    extendsRuleset = models.CharField(max_length=4,choices = Ruleset_CHOICES,verbose_name="Extended ruleset")
         
 
 
