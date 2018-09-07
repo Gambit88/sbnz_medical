@@ -140,6 +140,7 @@ class FileRule(models.Model):
     )
     extendedRule = models.CharField(max_length=6,choices = Rule_CHOICES,verbose_name="Extended rule")
     extendsRuleset = models.CharField(max_length=4,choices = Ruleset_CHOICES,verbose_name="Extended ruleset")
-        
+    class Meta:
+        unique_together = ('extendedRule','params')
 
 

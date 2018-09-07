@@ -7,9 +7,19 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.csrf import csrf_exempt
 from django.template.defaulttags import register
+from django.db import IntegrityError
+from django.http import HttpResponse
+from business_rules.engine import run_all
+from business_rules.utils import export_rule_data
+from pathlib import Path
+from importlib import import_module
+import json
 
 from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule
-
+from monitoring.rule_writer import customMonitoringVariablesWriter
+from .rule_writer import customDiagnosisVariablesWriter
+from .resoner import AlergyActions,AlergyVariables,DiseaseActions,DiseaseVariables,DiseasesActions,DiseasesVariables,PatientActions,PatientVariables,SyndromeActions,SyndromeVariables
+from monitoring.resoner import MonitoringActions,MonitoringVariables
 # Create your views here.
 
 def something(request):
@@ -194,16 +204,118 @@ def ruleextsP(request):
     fileRules = FileRule.objects.all()
     dt = dict(FileRule.Rule_CHOICES)
     return HttpResponse(template.render({'fileRules':fileRules,'user':request.user, 'dict':dt}))
+def createRuleextPage(request):
+    template = loader.get_template("createRuleExtPage.html")
+    dt = list(FileRule.Rule_CHOICES)
+    return HttpResponse(template.render({'user':request.user,'rule':dt}))
+@csrf_exempt
+def newRuleext(request):
+    try:
+        ruleExt = FileRule.objects.create()
+        params = request.POST.get('params')
+        rule = request.POST.get('extendRule')
+        print(rule)
+        rset = None
+        if rule.startswith('mv_'):
+            rset = 'monv'
+        elif rule.startswith('dv_'):
+            rset = 'disv'
+        elif rule.startswith('pv_'):
+            rset = 'patv'
+
+        ruleExt.extendedRule = rule
+        ruleExt.extendsRuleset = rset
+        ruleExt.params = params
+        ruleExt.save()
+    except IntegrityError:
+        return redirect('/diagnostics/ruleextensions/')
+
+    monitoringRules = FileRule.objects.filter(extendsRuleset='monv')
+    diseaseRules = FileRule.objects.filter(extendsRuleset='disv')
+    patientRules = FileRule.objects.filter(extendsRuleset='patv')
+
+    customMonitoringVariablesWriter(monitoringRules)
+    customDiagnosisVariablesWriter(diseaseRules)
+    customDiagnosisVariablesWriter(patientRules)
+
+    return redirect('/diagnostics/ruleextensions/')
 #Rules
 def rulesP(request):
     template = loader.get_template("rulesPage.html")
     rules = Rule.objects.all()
     dt = dict(Rule.Type_CHOICES)
     return HttpResponse(template.render({'rules':rules,'user':request.user, 'dict':dt}))
-
-
-
-
+def editRuleP(request,id):
+    template = loader.get_template("createRulePage.html")
+    dt = list(Rule.Type_CHOICES)
+    if id=="None":
+        return HttpResponse(template.render({'new':True,'user':request.user,'dict':dt}))
+    else:
+        rule = Rule.objects.get(id=id)
+        return HttpResponse(template.render({'new':False,'user':request.user,'dict':dt,'rule':rule}))
+@csrf_exempt
+def newRule(request):
+    rule = Rule.objects.create()
+    title = request.POST.get('title')
+    rtype = request.POST.get('type')
+    content = request.POST.get('content')
+    rule.title = title
+    rule.type = rtype
+    rule.content = content
+    rule.save()
+    return redirect('/diagnostics/rules/')
+@csrf_exempt
+def editRule(request,ruleset_id):
+    rule = Rule.objects.get(id=ruleset_id)
+    title = request.POST.get('title')
+    rtype = request.POST.get('type')
+    content = request.POST.get('content')
+    rule.title = title
+    rule.type = rtype
+    rule.content = content
+    rule.save()
+    return redirect('/diagnostics/rules/')
+@csrf_exempt
+def deleteRule(request,ruleset_id):
+    rule = Rule.objects.get(id=ruleset_id)
+    rule.delete()
+    return redirect('/diagnostics/rules/')
+def ruleHelpDdmr(request):
+    my_file = Path("./diagnostics/custom_variables_d.py")
+    if my_file.is_file():
+        module = import_module('.custom_variables_d',package="diagnostics")
+        data = export_rule_data(module.CustomDiseaseVariables, DiseaseActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+    else:
+        data = export_rule_data(DiseaseVariables, DiseaseActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+def ruleHelpPadr(request):
+    data = export_rule_data(AlergyVariables, AlergyActions)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+def ruleHelpFdsr(request):
+    data = export_rule_data(SyndromeVariables, SyndromeActions)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+def ruleHelpDdbosr(request):
+    data = export_rule_data(DiseasesVariables, DiseasesActions)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+def ruleHelpMar(request):
+    my_file = Path("./monitoring/custom_variables_m.py")
+    if my_file.is_file():
+        module = import_module('.custom_variables_m',package="monitoring")
+        data = export_rule_data(module.CustomMonitoringVariables, MonitoringActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+    else:
+        data = export_rule_data(MonitoringVariables, MonitoringActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+def ruleHelpRfgp(request):
+    my_file = Path("./diagnostics/custom_variables_p.py")
+    if my_file.is_file():
+        module = import_module('.custom_variables_p',package="diagnostics")
+        data = export_rule_data(module.CustomPatientVariables, PatientActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+    else:
+        data = export_rule_data(PatientVariables, PatientActions)
+        return HttpResponse(json.dumps(data), content_type="application/json")
 
 #LOGIN STUFF
 @csrf_exempt

@@ -1,6 +1,9 @@
 def customMonitoringVariablesWriter(rules):
-    file = open("custom_variables_m.py",'w')
-    file.write("from resoner import MonitoringVariables\n\n")
+    if(len(rules)<1):
+        return
+    file = open("./monitoring/custom_variables_m.py",'w')
+    file.write("from business_rules.variables import numeric_rule_variable,boolean_rule_variable\n\n")
+    file.write("from .resoner import MonitoringVariables\n\n")
     file.write("class CustomMonitoringVariables(MonitoringVariables):\n")
     for rule in rules:
         parametars = rule.params.split(",")

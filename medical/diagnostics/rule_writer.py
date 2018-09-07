@@ -1,13 +1,17 @@
-def customMonitoringVariablesWriter(rules):
+def customDiagnosisVariablesWriter(rules):
     #potencijalno dodati variable kao import
     file = None
+    if(len(rules)<1):
+        return
     if(rules[0].extendsRuleset=="disv"):
-        file = open("custom_variables_d.py",'w')
-        file.write("from resoner import DiseaseVariables\n\n")
+        file = open("./diagnostics/custom_variables_d.py",'w')
+        file.write("from business_rules.variables import numeric_rule_variable\n\n")
+        file.write("from .resoner import DiseaseVariables\n\n")
         file.write("class CustomDiseaseVariables(DiseaseVariables):\n")
     elif(rules[0].extendsRuleset=="patv"):
-        file = open("custom_variables_p.py",'w')
-        file.write("from resoner import PatientVariables\n\n")
+        file = open("./diagnostics/custom_variables_p.py",'w')
+        file.write("from business_rules.variables import numeric_rule_variable,select_multiple_rule_variable\n\n")
+        file.write("from .resoner import PatientVariables\n\n")
         file.write("class CustomPatientVariables(PatientVariables):\n")
     
     for rule in rules:

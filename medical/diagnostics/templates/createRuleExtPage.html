@@ -137,59 +137,30 @@
                     <div class="col-lg-12">
                         <h3 class="page-header">
                             {%if new%}
-                            <i class="icon_profile"></i> Add Patient {%else%}
-                            <i class="icon_profile"></i> Edit Patient {%endif%}
+                            <i class="icon_book_alt"></i> Add Rule System Extensions {%else%}
+                            <i class="icon_book_alt"></i> Edit Rule System Extensions {%endif%}
 
                         </h3>
                     </div>
                 </div>
                 <!-- page start-->
-                {%if new%}
-                <form method="POST" action="{% url 'newPatient' %}" class="form-horizontal" id="confirmNew"> {%else%}
-                    <form method="POST" class="form-horizontal" action="{% url 'editPatient' patient_id=patient.id %}" id="confirmEdit"> {%endif%}
+                <form method="POST" action="{% url 'newRuleextension' %}" class="form-horizontal" id="confirmNew">
+                        
+                        <div class="form-group  ">
+                            <label class="control-label col-lg-1" for="inputSuccess">Extends rule</label>
+                            <div class="col-lg-11">
+                                <select class="form-control" id="medSelect" name="extendRule">
+                                    {%for pair in rule%}
+                                    <option value="{{pair|get_value}}">{{pair|get_text}}</option>
+                                    {%endfor%}
+                                </select>
+                            </div>
+                        </div>
                         
                         <div class="form-group">
-                            <label class="col-sm-1 control-label">Name</label>
+                            <label class="col-sm-1 control-label">Parameters</label>
                             <div class="col-sm-11">
-                                {%if new%}
-                                <input class="form-control" type="text" name="name">{%else%}
-                                <input class="form-control" value="{{patient.name}}" type="text" name="name">{%endif%}
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="col-sm-1 control-label">Surname</label>
-                            <div class="col-sm-11">
-                                {%if new%}
-                                <input class="form-control" type="text" name="surname">{%else%}
-                                <input class="form-control" value="{{patient.surname}}" type="text" name="surname">{%endif%}
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-lg-1" for="inputSuccess">Alergenic ingredients</label>
-                            <div class="col-lg-11">
-                                <select  class="form-control" id="ingSelect" multiple="multiple">
-                                    {%for ingredient in ingredients%} {%if new%}
-                                    <option value="{{ingredient.id}}">{{ingredient}}</option>{%else%} {%if ingredient in alergeni%}
-                                    <option value="{{ingredient.id}}" selected="True">{{ingredient}}</option>
-                                    {%else%}
-                                    <option value="{{ingredient.id}}">{{ingredient}}</option>
-                                    {%endif%}{%endif%} {%endfor%}
-                                </select>
-                                <input type="hidden" name="ingredients" id="h_i">
-                            </div>
-                        </div>
-
-                        <div class="form-group  ">
-                            <label class="control-label col-lg-1" for="inputSuccess">Alergenic medicines</label>
-                            <div class="col-lg-11">
-                                <select multiple="multiple" class="form-control" size="10" id="medSelect">
-                                    {%for medicine in medicines%}{%if mew%}
-                                    <option value="{{medicine.id}}">{{medicine}}</option>{%else%}{%if medicine in alergenm%}
-                                    <option value="{{medicine.id}}" selected="True">{{medicine}}</option>{%else%}
-                                    <option value="{{medicine.id}}">{{medicine}}</option>{%endif%}{%endif%} {%endfor%}
-                                </select>
-                                <input type="hidden" name="medicines" id="h_m">
+                                <input class="form-control" type="text" name="params">
                             </div>
                         </div>
                         <div class="text-right">
@@ -229,18 +200,6 @@
     <!-- jquery ui -->
     <script src="{% static 'js/jquery-ui-1.9.2.custom.min.js'%}"></script>
     <!-- form submit -->
-    <script>
-        $( "#confirmNew" ).submit(function() {
-         $("#h_i").val($("#ingSelect").val());
-         $("#h_m").val($("#medSelect").val());
-         return true;
-        });
-        $( "#confirmEdit" ).submit(function() {
-         $("#h_i").val($("#ingSelect").val());
-         $("#h_m").val($("#medSelect").val());
-         return true;
-        });
-    </script>
 </body>
 
 </html>

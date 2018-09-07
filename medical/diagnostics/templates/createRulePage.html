@@ -22,7 +22,8 @@
     <!-- Custom styles -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="{% static 'css/style-responsive.css' %}" rel="stylesheet" />
-
+    <!--Rule editor-->
+    
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 -->
     <!--[if lt IE 9]>
       <script src="js/html5shiv.js"></script>
@@ -137,65 +138,49 @@
                     <div class="col-lg-12">
                         <h3 class="page-header">
                             {%if new%}
-                            <i class="icon_profile"></i> Add Patient {%else%}
-                            <i class="icon_profile"></i> Edit Patient {%endif%}
+                            <i class="icon_book_alt"></i> Add Rule {%else%}
+                            <i class="icon_book_alt"></i> Edit Rule {%endif%}
 
                         </h3>
                     </div>
                 </div>
                 <!-- page start-->
                 {%if new%}
-                <form method="POST" action="{% url 'newPatient' %}" class="form-horizontal" id="confirmNew"> {%else%}
-                    <form method="POST" class="form-horizontal" action="{% url 'editPatient' patient_id=patient.id %}" id="confirmEdit"> {%endif%}
-                        
+                <form method="POST" action="{% url 'newRule' %}" class="form-horizontal" id="confirmNew"> {%else%}
+                    <form method="POST" class="form-horizontal" action="{% url 'editRule' ruleset_id=rule.id %}" id="confirmEdit"> {%endif%}
                         <div class="form-group">
-                            <label class="col-sm-1 control-label">Name</label>
+                            <label class="col-sm-1 control-label">Title</label>
                             <div class="col-sm-11">
                                 {%if new%}
-                                <input class="form-control" type="text" name="name">{%else%}
-                                <input class="form-control" value="{{patient.name}}" type="text" name="name">{%endif%}
+                                <input class="form-control" type="text" name="title">{%else%}
+                                <input class="form-control" value="{{rule.title}}" type="text" name="title">{%endif%}
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="col-sm-1 control-label">Surname</label>
-                            <div class="col-sm-11">
-                                {%if new%}
-                                <input class="form-control" type="text" name="surname">{%else%}
-                                <input class="form-control" value="{{patient.surname}}" type="text" name="surname">{%endif%}
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-lg-1" for="inputSuccess">Alergenic ingredients</label>
+                            <label class="control-label col-lg-1" for="inputSuccess">Rule set</label>
                             <div class="col-lg-11">
-                                <select  class="form-control" id="ingSelect" multiple="multiple">
-                                    {%for ingredient in ingredients%} {%if new%}
-                                    <option value="{{ingredient.id}}">{{ingredient}}</option>{%else%} {%if ingredient in alergeni%}
-                                    <option value="{{ingredient.id}}" selected="True">{{ingredient}}</option>
-                                    {%else%}
-                                    <option value="{{ingredient.id}}">{{ingredient}}</option>
-                                    {%endif%}{%endif%} {%endfor%}
+                                <select class="form-control" id="tSelect" name="type">
+                                    {%for pair in dict%}
+                                    <option value="{{pair|get_value}}">{{pair|get_text}}</option>
+                                    {%endfor%}
                                 </select>
-                                <input type="hidden" name="ingredients" id="h_i">
+                                <input type="hidden" name="content" id="cont">
                             </div>
                         </div>
 
-                        <div class="form-group  ">
-                            <label class="control-label col-lg-1" for="inputSuccess">Alergenic medicines</label>
-                            <div class="col-lg-11">
-                                <select multiple="multiple" class="form-control" size="10" id="medSelect">
-                                    {%for medicine in medicines%}{%if mew%}
-                                    <option value="{{medicine.id}}">{{medicine}}</option>{%else%}{%if medicine in alergenm%}
-                                    <option value="{{medicine.id}}" selected="True">{{medicine}}</option>{%else%}
-                                    <option value="{{medicine.id}}">{{medicine}}</option>{%endif%}{%endif%} {%endfor%}
-                                </select>
-                                <input type="hidden" name="medicines" id="h_m">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">Content</label>
+                            <div class="col-sm-11">
+                                <div id="conditions"></div>
+                                <div id="actions"></div>
                             </div>
                         </div>
+
                         <div class="text-right">
                             {%if new%}
-                            <input type="submit" class="btn btn-success" value="Confirm"/>{%else%}
-                            <input type="submit" class="btn btn-info" value="Confirm"/>{%endif%}
+                            <input type="submit" class="btn btn-success" value="Confirm" />{%else%}
+                            <input type="submit" class="btn btn-info" value="Confirm" />{%endif%}
                         </div>
 
                     </form>
@@ -229,18 +214,10 @@
     <!-- jquery ui -->
     <script src="{% static 'js/jquery-ui-1.9.2.custom.min.js'%}"></script>
     <!-- form submit -->
-    <script>
-        $( "#confirmNew" ).submit(function() {
-         $("#h_i").val($("#ingSelect").val());
-         $("#h_m").val($("#medSelect").val());
-         return true;
-        });
-        $( "#confirmEdit" ).submit(function() {
-         $("#h_i").val($("#ingSelect").val());
-         $("#h_m").val($("#medSelect").val());
-         return true;
-        });
-    </script>
+    <!--rule editor-->
+    <script src="{%static 'js/actions-builder.js'%}"></script>
+    <script src="{%static 'js/conditions-builder.js'%}"></script>
+    <script src="{%static 'js/crete-rule.js'%}"></script>
 </body>
 
 </html>
