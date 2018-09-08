@@ -53,6 +53,7 @@ class Rule(models.Model):
 		(patientInfoRule, 'Rule for grouping patients'),
 		)
     ruletype = models.CharField(max_length=1,choices = Type_CHOICES,verbose_name="Rule type")
+    priority = models.IntegerField(verbose_name="Rule priority")
     def __str__(self):
         return self.title
     class Meta:
@@ -89,9 +90,6 @@ class Diagnosis(models.Model):
 
 class RezonerHelper():
     def __init__(self):
-        self.regSyndCount = 0
-        self.strSyndCount = 0
-        self.percent = 0
         self.bestPercent = 0
         self.bestRegSyndCount = 0
         self.bestStrSyndCount = 0

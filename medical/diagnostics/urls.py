@@ -40,9 +40,9 @@ urlpatterns = [
 
     path('rules/',views.rulesP,name="rulesPage"),
     path('rules/create/',views.editRuleP,{'id':'None'},name="createRulePage"),
-    path('rules/create/<int:id>/',views.editRuleP,name="editRulePage"),
+    #path('rules/create/<int:id>/',views.editRuleP,name="editRulePage"),
     path('rules/new/',views.newRule,name="newRule"),
-    path('rules/edit/<int:ruleset_id>/',views.editRule,name="editRule"),
+    #path('rules/edit/<int:ruleset_id>/',views.editRule,name="editRule"),
     path('rules/delete/<int:ruleset_id>/',views.deleteRule,name="deleteRule"),
     path('rules/help/ddmr/',views.ruleHelpDdmr),
     path('rules/help/padr/',views.ruleHelpPadr),

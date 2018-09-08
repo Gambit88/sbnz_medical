@@ -1,32 +1,52 @@
 from business_rules.variables import BaseVariables,select_multiple_rule_variable,select_rule_variable,string_rule_variable,numeric_rule_variable,boolean_rule_variable
 from business_rules.actions import BaseActions,rule_action
-from business_rules.fields import FIELD_SELECT_MULTIPLE,FIELD_NUMERIC
+from business_rules.fields import FIELD_SELECT_MULTIPLE,FIELD_NUMERIC,FIELD_TEXT
+from django.core import serializers
+
+from .models import Medicine,Ingredient,Syndrome,Disease
 
 from datetime import datetime, timedelta
 
+#mora izmena
 #for alergy detection rules, run for all medicines in diagnosis
+def getNamesList(objects):
+    l = []
+    for obj in objects:
+        l.append(obj.name)
+    return l
 class AlergyVariables(BaseVariables):
     def __init__(self, patient, medicine):
         self.patient = patient
         self.medicine = medicine
-    @select_multiple_rule_variable(label="Prescribed medicine ingredients")
+    @select_multiple_rule_variable(label="Prescribed medicine ingredients",options=getNamesList(Ingredient.objects.all()))
     def getMedicineIngredients(self):
-        return self.medicine.ingredient
-    @select_rule_variable(label="Prescribed medicine")
+        return getNamesList(self.medicine.ingredient.all())
+    @select_rule_variable(label="Prescribed medicine", options=getNamesList(Medicine.objects.all()))
     def getMedicine(self):
-        return self.medicine
-    @select_multiple_rule_variable(label="Medicines that patient is allergic to ")
+        return self.medicine.name
+    @select_multiple_rule_variable(label="Medicines that patient is allergic to ", options=getNamesList(Medicine.objects.all()))
     def getAlergyMedicines(self):
-        return self.patient.alergymed
-    @select_multiple_rule_variable(label="Ingredients that patient is allergic to")
+        return getNamesList(self.patient.alergymed)
+    @select_multiple_rule_variable(label="Ingredients that patient is allergic to",options=getNamesList(Ingredient.objects.all()))
     def getAlergyIngredients(self):
-        return self.patient.alergying
+        return getNamesList(self.patient.alergying)
     @string_rule_variable(label="Prescribed medicine type")
     def getMedicineType(self):
         return self.medicine.medtype
     @string_rule_variable(label="Prescribed medicine name")
     def getMedicineName(self):
         return self.medicine.name
+    @boolean_rule_variable(label="Prescribed medicine is in patients allergic medicines list")
+    def getIngredientMatched(self):
+        if self.medicine in self.patient.alergymed.all():
+            return True
+        return False
+    @boolean_rule_variable(label="Prescribed medicine has an ingredient that can be found in patients allergic ingredients list")
+    def getMedicineMatched(self):
+        for ing in self.medicine.ingredient.all():
+            if ing in self.patient.alergying.all():
+                return True
+        return False
 
 class AlergyActions(BaseActions):
     def __init__(self):
@@ -44,15 +64,15 @@ class DiseasesVariables(BaseVariables):
     def __init__(self,diagnosis,disease):
         self.diagnosis = diagnosis
         self.disease = disease
-    @select_multiple_rule_variable(label="Inputed syndromes")
+    @select_multiple_rule_variable(label="Inputed syndromes",options=getNamesList(Syndrome.objects.all()))
     def getInputSyndromes(self):
-        return self.diagnosis.syndroms
-    @select_multiple_rule_variable(label="Specific disease syndromes")
+        return getNamesList(self.diagnosis.syndroms.all())
+    @select_multiple_rule_variable(label="Specific disease syndromes",options=getNamesList(Syndrome.objects.all()))
     def getSDiseaseSyndromes(self):
-        return self.disease.strongsympt
-    @select_multiple_rule_variable(label="General disease syndromes")
+        return getNamesList(self.disease.strongsympt.all())
+    @select_multiple_rule_variable(label="General disease syndromes",options=getNamesList(Syndrome.objects.all()))
     def getRDiseaseSyndromes(self):
-        return self.disease.regularsympt
+        return getNamesList(self.disease.regularsympt.all())
     @string_rule_variable(label = "Disease name")
     def getDiseaseName(self):
         return self.disease.name
@@ -96,21 +116,30 @@ class SyndromeVariables(BaseVariables):
     def __init__(self,disease,syndrome):
         self.disease = disease
         self.syndrome = syndrome
-    @select_multiple_rule_variable(label="Inputed disease name")
+    @select_multiple_rule_variable(label="Inputed disease name", options=getNamesList(Disease.objects.all()))
     def getInputDiseaseName(self):
         return self.disease.name
-    @select_multiple_rule_variable(label="Specific disease syndromes")
+    @select_multiple_rule_variable(label="Specific disease syndromes", options=getNamesList(Syndrome.objects.all()))
     def getSDiseaseSyndromes(self):
-        return self.disease.strongsympt
-    @select_multiple_rule_variable(label="General disease syndromes")
+        return getNamesList(self.disease.strongsympt.all())
+    @select_multiple_rule_variable(label="General disease syndromes", options=getNamesList(Syndrome.objects.all()))
     def getRDiseaseSyndromes(self):
-        return self.disease.regularsympt
-    @string_rule_variable(label = "Syndrome")
-    def getDiseaseName(self):
-        return self.syndrome
-    @numeric_rule_variable(label = "Syndrome name")
-    def getRegSynCount(self):
+        return getNamesList(self.disease.regularsympt.all())
+    @string_rule_variable(label = "Syndrome name")
+    def getSyndName(self):
         return self.syndrome.name
+    @boolean_rule_variable(label = "Syndrome is contained in list of specific disease syndromes")
+    def getRegSynCount(self):
+        if self.syndrome in self.disease.strongsympt.all():
+            return True
+        else:
+            return False
+    @boolean_rule_variable(label = "Syndrome is contained in list of general disease syndromes")
+    def getStrSynCount(self):
+        if self.syndrome in self.disease.regularsympt.all():
+            return True
+        else:
+            return False
 
 class SyndromeActions(BaseActions):
     def __init__(self):
@@ -121,13 +150,14 @@ class SyndromeActions(BaseActions):
 
 #for finding which disease might be a problem rules
 class DiseaseVariables(BaseVariables):
-    def __init__(self,diagnosis,helper):
+    def __init__(self,diagnosis,disease,helper):
         self.diagnosis = diagnosis
+        self.disease = disease
         self.helper = helper
-    @select_multiple_rule_variable(label="List of inputed syndrome names")
+    @select_multiple_rule_variable(label="List of inputed syndrome names",options=getNamesList(Syndrome.objects.all()))
     def getSyndromesNames(self):
         result = []
-        for syndrome in self.diagnosis.syndromes:
+        for syndrome in self.diagnosis.syndromes.all():
             result.append(syndrome.name)
         return result
     @numeric_rule_variable(label="Temperature in *C")
@@ -182,25 +212,43 @@ class DiseaseVariables(BaseVariables):
         return len(results)
     @numeric_rule_variable(label="Number of syndromes connected to current disease")
     def getSyndCount(self):
-        return self.helper.regSyndCount + self.helper.strSyndCount
+        res = 0
+        for syndrome in self.diagnosis.syndromes.all():
+            for dsynd in self.disease.strongsympt.all():
+                if syndrome.name == dsynd.name:
+                    res = res + 1
+        for syndrome in self.diagnosis.syndromes.all():
+            for dsynd in self.disease.regularsympt.all():
+                if syndrome.name == dsynd.name:
+                    res = res + 1
+        return res
     @numeric_rule_variable(label="Number of syndromes connected to most likely diagnosed disease")
     def getBestSyndCount(self):
         return self.helper.bestRegSyndCount + self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Probability connected to diagnosing current disease")
     def getPercent(self):
-        return self.helper.percent
+        return ((self.getSyndCount()/(len(self.disease.regularsympt.all())+len(self.disease.strongsympt.all())))*100)
     @numeric_rule_variable(label="Probability connected to diagnosing most likely diagnosed disease")
     def getBestPercent(self):
         return self.helper.bestPercent
     @numeric_rule_variable(label="Number of strong syndromes connected to current disease")
     def getSpecSyndCount(self):
-        return self.helper.strSyndCount
+        res = 0
+        for syndrome in self.diagnosis.syndromes.all():
+            for dsynd in self.disease.strongsympt.all():
+                if syndrome.name == dsynd.name:
+                    res = res + 1
+        return res
     @numeric_rule_variable(label="Number of strong syndromes connected to most likely diagnosed disease")
     def getBestSpecSyndCount(self):
         return self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Number of regular syndromes connected to current disease")
     def getRegSyndCount(self):
-        return self.helper.regSyndCount
+        for syndrome in self.diagnosis.syndromes.all():
+            for dsynd in self.disease.regularsympt.all():
+                if syndrome.name == dsynd.name:
+                    res = res + 1
+        return res
     @numeric_rule_variable(label="Number of regular syndromes connected to most likely diagnosed disease")
     def getBestRegSyndCount(self):
         return self.helper.bestRegSyndCount
@@ -210,38 +258,31 @@ class DiseaseVariables(BaseVariables):
 
 
 class DiseaseActions(BaseActions):
-    def __init__(self,helper):
+    def __init__(self,helper,variables):
         self.helper = helper
-    @rule_action(label="Set regular syndromes of current disease")
-    def setRsynCount(self,number):
-        self.helper.regSyndCount = number
-    @rule_action(label="Set strong syndromes count of current disease")
-    def setSsynCount(self,number):
-        self.helper.strSyndCount = number
-    @rule_action(label="Increment regular syndromes count of current disease")
-    def incRsynCount(self):
-        self.helper.regSyndCount = self.helper.regSyndCount + 1
-    @rule_action(label="Increment strong syndromes count of current disease")
-    def incSsynCount(self):
-        self.helper.strSyndCount = self.helper.strSyndCount + 1
-    @rule_action(label="Set name of most likely diagnosed disease")
-    def setDiseaseName(self,name):
-        self.helper.diseaseName = name
-    @rule_action(label="Set percentage of current disease")
-    def setPerc(self,percentage):
-        self.helper.percent = percentage
-    @rule_action(label="Increse percentage of current disease")
-    def incPercBy(self,amount):
-        self.helper.percent = self.helper.percent + amount
-    @rule_action(label="Set strong syndromes count of most likely diagnosed disease")
-    def setBestSsyn(self,number):
-        self.helper.bestStrSyndCount = number
-    @rule_action(label="Set regular syndromes count of most likely diagnosed disease")
-    def setBestRsyn(self,number):
-        self.helper.bestRegSyndCount = number
-    @rule_action(label="Set percentage of most likely diagnosed disease")
-    def setBestPerc(self,percentage):
-        self.helper.bestPercent = percentage
+        self.variables = variables
+    @rule_action(label="Set current disease as most likely diagnosed disease")
+    def setDiseaseName(self):
+        self.helper.diseaseName = self.variables.disease.name
+        self.helper.bestStrSyndCount = self.variables.getSpecSyndCount()
+        self.helper.bestRegSyndCount = self.variables.getRegSyndCount()
+        self.helper.bestPercent = self.variables.getPercent()
+    @rule_action(label="Set current disease as most likely diagnosed disease if percentage of likeliness is higher than current best")
+    def setBestSsyn(self):
+        if self.variables.getPercent()>self.helper.bestPercent:
+            self.setDiseaseName()
+    @rule_action(label="Set current disease as most likely diagnosed disease if strong syndrome count is higher than current best")
+    def setBestRsyn(self):
+        if self.variables.getSpecSyndCount()>self.helper.bestStrSyndCount:
+            self.setDiseaseName()
+    @rule_action(label="Set current disease as most likely diagnosed disease if regular syndrome count is higher than current best")
+    def setBestPerc(self):
+        if self.variables.getRegSyndCount()>self.helper.bestRegSyndCount:
+            self.setDiseaseName()
+    @rule_action(label="Set current disease as most likely diagnosed disease if percentage(calculated after addition of completed complex parameters) of likeliness is higher than current best",params={'completed':FIELD_NUMERIC})
+    def setBestcomplex(self,completed):
+        if ((self.variables.getSyndCount()+completed)/((len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all()))*100))>self.helper.bestPercent:
+            self.setDiseaseName()
 
 #for finding patient data rules
 class PatientVariables(BaseVariables):

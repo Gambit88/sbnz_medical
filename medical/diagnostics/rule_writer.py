@@ -11,7 +11,8 @@ def customDiagnosisVariablesWriter(rules):
     elif(rules[0].extendsRuleset=="patv"):
         file = open("./diagnostics/custom_variables_p.py",'w')
         file.write("from business_rules.variables import numeric_rule_variable,select_multiple_rule_variable\n\n")
-        file.write("from .resoner import PatientVariables\n\n")
+        file.write("from .models import Disease\n")
+        file.write("from .resoner import PatientVariables,getNamesList\n\n")
         file.write("class CustomPatientVariables(PatientVariables):\n")
     
     for rule in rules:
@@ -39,7 +40,7 @@ def customDiagnosisVariablesWriter(rules):
                 file.write("\t\treturn self.hadMedicineType('"+parametars[0]+"',"+parametars[1]+")\n")
         elif(rule.extendsRuleset=="patv"):
             if(rule.extendedRule=="pv_rdn"):
-                file.write("\t@select_multiple_rule_variable(label='Names of diseases that had repeated "+ parametars[0] +" times in last "+ parametars[1] +" days')\n")
+                file.write("\t@select_multiple_rule_variable(label='Names of diseases that had repeated "+ parametars[0] +" times in last "+ parametars[1] +" days',options=getNamesList(Disease.objects.all()))\n")
                 file.write("\tdef customRuleRDN"+parametars[0].replace(" ", "")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.getRepetedDisNames("+parametars[0]+","+parametars[1]+")\n")
             elif(rule.extendedRule=="pv_cmt"):

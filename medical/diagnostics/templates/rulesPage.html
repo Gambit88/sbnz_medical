@@ -136,9 +136,9 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <h3 class="page-header">
-                            <i class="icon_book_alt"></i> Rule sets
+                            <i class="icon_book_alt"></i> Rules
                             <div class="text-right">
-                                <a class="btn btn-success" href="{% url 'createRulePage' %}">New rule set</a>
+                                <a class="btn btn-success" href="{% url 'createRulePage' %}">New rule</a>
                             </div>
                         </h3>
                     </div>
@@ -154,9 +154,11 @@
                                         <th>
                                             #</th>
                                         <th>
-                                            <i class="icon_book_alt"></i> Rule set title</th>
+                                            <i class="icon_book_alt"></i> Rule title</th>
                                         <th>
-                                            <i class="icon_book_alt"></i> Rule set group</th>
+                                            <i class="icon_book_alt"></i> Rule set name</th>
+                                        <th>
+                                            # Rule priority</th>
                                         <th>
                                             <i class="icon_cogs"></i> Actions</th>
                                     </tr>
@@ -165,15 +167,13 @@
                                         <td>{{rule.id}}</td>
                                         <td>{{rule.title}}</td>
                                         <td>{{dict|get_item:rule.ruletype }}</td>
+                                        <td>{{rule.priority}}</td>
                                         <!--HERE-->
                                         <td>
                                             <div class="btn-group">
-                                                <a class="btn btn-info" href="{% url 'editRulePage' id=rule.id %}">
-                                                    <i class="icon_pencil-edit"></i>
-                                                </a>
                                                 <a class="btn btn-danger" href="{% url 'deleteRule' ruleset_id=rule.id %}">
-                                                        <i class="icon_trash_alt"></i>
-                                                    </a>
+                                                    <i class="icon_trash_alt"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

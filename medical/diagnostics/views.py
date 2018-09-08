@@ -255,23 +255,17 @@ def editRuleP(request,id):
         return HttpResponse(template.render({'new':False,'user':request.user,'dict':dt,'rule':rule}))
 @csrf_exempt
 def newRule(request):
-    rule = Rule.objects.create()
     title = request.POST.get('title')
     rtype = request.POST.get('type')
+    try:
+        priority = int(request.POST.get('priority'))
+    except:
+        return redirect('/diagnostics/rules/')
+    print(priority)
     content = request.POST.get('content')
+    rule = Rule.objects.create(priority=priority)
     rule.title = title
-    rule.type = rtype
-    rule.content = content
-    rule.save()
-    return redirect('/diagnostics/rules/')
-@csrf_exempt
-def editRule(request,ruleset_id):
-    rule = Rule.objects.get(id=ruleset_id)
-    title = request.POST.get('title')
-    rtype = request.POST.get('type')
-    content = request.POST.get('content')
-    rule.title = title
-    rule.type = rtype
+    rule.ruletype = rtype
     rule.content = content
     rule.save()
     return redirect('/diagnostics/rules/')
