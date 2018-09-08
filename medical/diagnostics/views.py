@@ -211,10 +211,8 @@ def createRuleextPage(request):
 @csrf_exempt
 def newRuleext(request):
     try:
-        ruleExt = FileRule.objects.create()
         params = request.POST.get('params')
         rule = request.POST.get('extendRule')
-        print(rule)
         rset = None
         if rule.startswith('mv_'):
             rset = 'monv'
@@ -223,9 +221,7 @@ def newRuleext(request):
         elif rule.startswith('pv_'):
             rset = 'patv'
 
-        ruleExt.extendedRule = rule
-        ruleExt.extendsRuleset = rset
-        ruleExt.params = params
+        ruleExt = FileRule.objects.create(extendedRule=rule,extendsRuleset=rset,params=params)
         ruleExt.save()
     except IntegrityError:
         return redirect('/diagnostics/ruleextensions/')
