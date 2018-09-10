@@ -118,45 +118,114 @@
         <div class="row">
           <div class="col-lg-12">
             <h3 class="page-header">
-              <i class="icon_documents_alt"></i> Diseases containing inputed syndromes
+              <i class="icon_document_alt"></i> Diagnose disease
             </h3>
           </div>
         </div>
         <!-- page start-->
-        <form method="POST" action="{% url 'newMedicine' %}" class="form-horizontal" id="confirmNew">
+        <form method="POST" action="{% url 'prescribeMed' %}" class="form-horizontal" id="confirmNew">
+          <div class="form-group  ">
+            <label class="control-label col-lg-1" for="inputSuccess">Patient</label>
+            <div class="col-lg-11">
+              <select class="form-control" id="patient" name="patient">
+                {%for patient in patients%}
+                <option value="{{patient.id}}">#{{patient.id}}. {{patient.name}} {{patient.surname}}</option>{%endfor%}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-1 control-label">Temperature</label>
+            <div class="col-sm-11">
+              <div class="checkbox">
+                <label>
+                  <input value="False" type="checkbox" name="hadTemp" id="hadTemp"> Patient had high temperature
+                </label>
+              </div>
 
-            <div class="form-group">
-                <label class="col-sm-1 control-label">Name</label>
-                <div class="col-sm-11">
-                    <input class="form-control" type="text" name="name">
-                </div>
             </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-1 control-label"></label>
+            <div class="col-sm-2">
+              <input class="form-control" type="text" name="temp" id="temp">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="control-label col-lg-1" for="inputSuccess">Syndromes</label>
+            <div class="col-lg-11">
+              <select class="form-control" id="synSelect" multiple="multiple">
+                {%for syndrome in syndromes%}
+                <option value="{{syndrome.id}}">{{syndrome.name}}</option>
+                {%endfor%}
+              </select>
+              <input type="hidden" name="syndromes" id="syndromes">
+            </div>
+          </div>
 
-            <div class="form-group  ">
-                <label class="control-label col-lg-1" for="inputSuccess">Medicine type</label>
-                <div class="col-lg-11">
-                    <select class="form-control" id="medSelect" name="type">
-                        {%for pair in choice%}
-                        <option value="{{pair|get_value}}">{{pair|get_text}}
-                        {%endfor%}
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-1" for="inputSuccess">Ingredients</label>
-                <div class="col-lg-11">
-                    <select class="form-control" id="ingSelect" multiple="multiple">
-                        {%for ingredient in ingredients%}
-                        <option value="{{ingredient.id}}">{{ingredient}}</option>
-                        {%endfor%}
-                    </select>
-                    <input type="hidden" name="ingredients" id="h_i">
-                </div>
-            </div>
 
-            <div class="text-right">
-                <input type="submit" class="btn btn-success" value="Confirm" />
+          <div class="form-group">
+            <label class="col-sm-1 control-label">Diseases auto detection</label>
+            <div class="col-lg-10">
+              <select class="form-control" id="ruleSelect" multiple="multiple">
+                {%for rule in rules%}
+                <option value="{{rule.id}}">{{rule.title}}</option>
+                {%endfor%}
+              </select>
+              <input type="hidden" name="rules" id="rules">
             </div>
+            <div class="col-sm-1">
+              <a id="detectDisease" class="btn btn-info">
+                Detect
+              </a>
+            </div>
+          </div>
+          <div class="alert alert-info fade in" id="diseaseTestResults" hidden="True">
+            <button data-dismiss="alert" class="close close-sm" type="button">
+              <i class="icon-remove"></i>
+            </button>
+            <label id="detectionResult"><strong>Results:</strong></label>
+          </div>
+          <div class="form-group  ">
+            <label class="control-label col-lg-1" for="inputSuccess">Disease</label>
+            <div class="col-lg-11">
+              <select class="form-control" id="dSelect" name="disease">
+                {%for disease in diseases%}
+                <option value="{{disease.id}}">{{disease.name}}</option> {%endfor%}
+              </select>
+            </div>
+          </div>
+          <div class="form-group  ">
+            <label class="control-label col-lg-1" for="inputSuccess">Medicine</label>
+            <div class="col-lg-10">
+              <select class="form-control" id="medSelect" multiple="multiple">
+                {%for medicine in medicines%}
+                <option value="{{medicine.id}}">{{medicine.name}}</option> {%endfor%}
+              </select>
+              <input type="hidden" name="medicines" id="medicines">
+            </div>
+            <div class="col-sm-1">
+              <a id="testAlergy" class="btn btn-info">
+                Test
+              </a>
+            </div>
+          </div>
+          <div class="alert alert-block alert-danger fade in" id="testFaild" hidden="True">
+            <button data-dismiss="alert" class="close close-sm" type="button">
+              <i class="icon-remove"></i>
+            </button>
+            <strong >Patient is alergic</strong> to one of the medicines or their ingredients!
+          </div>
+          <div class="alert alert-success fade in" id="testPassed" hidden="True">
+            <button data-dismiss="alert" class="close close-sm" type="button">
+              <i class="icon-remove"></i>
+            </button>
+            <strong>Patient is not alergic</strong> to any of the medicines or their ingredients!
+          </div>
+
+          <div class="text-right">
+            <a class="btn btn-info" id="posibleDisList">Posible diseases</a>
+            <input type="submit" class="btn btn-success" value="Diagnose" />
+          </div>
 
         </form>
         <!-- page end-->
@@ -188,17 +257,8 @@
   <script src="{% static 'js/jquery.tagsinput.js' %}"></script>
   <!-- jquery ui -->
   <script src="{% static 'js/jquery-ui-1.9.2.custom.min.js'%}"></script>
+  <script src="{% static 'js/diagnose.js'%}"></script>
   <!-- form submit -->
-  <script>
-    $("#confirmNew").submit(function () {
-        $("#h_i").val($("#ingSelect").val());
-        return true;
-    });
-    $("#confirmEdit").submit(function () {
-        $("#h_i").val($("#ingSelect").val());
-        return true;
-    });
-</script>
 </body>
 
 </html>

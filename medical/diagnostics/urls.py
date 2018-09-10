@@ -49,12 +49,13 @@ urlpatterns = [
     path('rules/help/mar/',views.ruleHelpMar),
     path('rules/help/rfgp/',views.ruleHelpRfgp),
 
-    path('diagnose/',views.something,name="diagnosePage"),
-    path('diagnose/autodiagnose/',views.something,name=""),
-    path('diagnose/diseases/',views.something,name=""),
+    path('diagnose/',views.diagnosisPage,name="diagnosePage"),
+    path('diagnose/alergy/',views.alergyDetection,name="alergy"),
+    path('diagnose/autodiagnose/',views.diseaseFinder,name="diseaseFinder"),
+    path('diagnose/diseases/',views.diseaselistPage,name="diseaseList"),
     path('diagnose/syndromes/',views.diseasesyndpage,name="diagSyndPickPage"),
     path('diagnose/syndromes/<str:disease_name>/',views.diseaseSyndList,name="diagSyndPage"),
-    path('diagnose/prescribe/',views.something,name=""),
+    path('diagnose/prescribe/',views.diagnoze,name="prescribeMed"),
 
     path('reports/', views.reportpage,name="reportsPage"),
     path('reports/get/', views.patientreportList,name="reportsResults"),

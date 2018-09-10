@@ -15,16 +15,12 @@ from pathlib import Path
 from importlib import import_module
 import json
 
-from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule,Diagnosis,DiagnosedSyndromes
+from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule,Diagnosis,DiagnosedSyndromes,RezonerHelper
 from monitoring.rule_writer import customMonitoringVariablesWriter
 from .rule_writer import customDiagnosisVariablesWriter
 from .resoner import AlergyActions,AlergyVariables,DiseaseActions,DiseaseVariables,DiseasesActions,DiseasesVariables,PatientActions,PatientVariables,SyndromeActions,SyndromeVariables
 from monitoring.resoner import MonitoringActions,MonitoringVariables
 # Create your views here.
-
-def something(request):
-    pass
-
 #Doctor pages/resoner runners
 #SYNDROME DETECTION
 def diseasesyndpage(request):
@@ -64,7 +60,7 @@ def patientreportList(request):
     template = loader.get_template("patientListPage.html")
     patients = []
     rulesId = request.GET.get('rules').split(',')
-    rules = Rule.objects.filter(ruletype=Rule.findDiseaseSymptomsRule).order_by('-priority')
+    rules = Rule.objects.filter(ruletype=Rule.patientInfoRule).order_by('-priority')
     engRules = []
     for rule in rules:
         if str(rule.id) in rulesId:
@@ -94,7 +90,7 @@ def patientreportList(request):
                 patients.append(patient)
         
     return HttpResponse(template.render({'patients':patients,'user':request.user}))
-#DISEASE SYNDROMES
+#DISEASE BASED ON SYNDROMES
 def diseaselistPage(request):
     template = loader.get_template("diseaseListPage.html")
     diseasesRaw = []
@@ -120,6 +116,109 @@ def diseaselistPage(request):
         diseases.append(rawDis[0])
     
     return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
+#ALERGY DETECTION
+def alergyDetection(request):
+    meds = []
+    medicines = request.GET.get('medicines').split(',')
+    for medicine in medicines:
+        meds.append(Medicine.objects.get(id=int(medicine)))
+    patientId = int(request.GET.get('patient'))
+    patient = Patient.objects.get(id=patientId)
+    rules = Rule.objects.filter(ruletype=Rule.alergyRule).order_by('-priority')
+    engRules = []
+    result = False
+    for rule in rules:
+        engRules.append(json.loads(rule.content))
+    for medicine in meds:
+        alergyActions = AlergyActions()
+        run_all(rule_list=engRules,
+        defined_variables=AlergyVariables(patient,medicine),
+        defined_actions=alergyActions,
+        stop_on_first_trigger=True
+        )
+        if alergyActions.alarm:
+            result = True
+            break
+    data = {"alarm":result}
+    return HttpResponse(json.dumps(data), content_type="application/json")
+#DEASES FINDINGS
+def diseaseFinder(request):
+    patient = Patient.objects.get(id=int(request.GET.get('patient')))
+    highTmp = request.GET.get("hadTemp")
+    if highTmp=="False":
+        tmp = 36
+    else:
+        tmp = request.GET.get("temp")
+        if tmp == None:
+            tmp = 36
+    diagnosis = Diagnosis.objects.create(doctor=request.user,patient=patient,temp=int(tmp),highTemp=bool(highTmp))
+    syndromes = request.GET.get('syndromes').split(',')
+    for synid in syndromes:
+        diagnosis.syndromes.add(Syndrome.objects.get(id=int(synid)))
+    helper = RezonerHelper()
+
+    rulesId = request.GET.get('rules')
+    if rulesId != None:
+        rulesId = rulesId.split(',')
+    else:
+        return HttpResponse(json.dumps({"disease":"None","probability":'N/A'}), content_type="application/json")
+    rules = Rule.objects.filter(ruletype=Rule.diseaseRule).order_by('-priority')
+    engRules = []
+    for rule in rules:
+        if str(rule.id) in rulesId:
+            engRules.append(json.loads(rule.content))
+    
+    my_file = Path("./diagnostics/custom_variables_d.py")
+    if my_file.is_file():
+        module = import_module('.custom_variables_d',package="diagnostics")
+        for disease in Disease.objects.all():
+            diseaseVariables = module.CustomDiseaseVariables(diagnosis,disease,helper)
+            diseaseActions = DiseaseActions(helper,diseaseVariables)
+            run_all(rule_list=engRules,
+                defined_variables=diseaseVariables,
+                defined_actions=diseaseActions,
+                stop_on_first_trigger=True
+            )
+    else:
+        for disease in Disease.objects.all():
+            diseaseVariables = DiseaseVariables(diagnosis,disease,helper)
+            diseaseActions = DiseaseActions(helper,diseaseVariables)
+            run_all(rule_list=engRules,
+                defined_variables=diseaseVariables,
+                defined_actions=diseaseActions,
+                stop_on_first_trigger=True
+            )
+    result = {}
+    result['disease'] = helper.diseaseName
+    result['probability'] = helper.bestPercent
+    diagnosis.delete()
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+#Diagnose
+@csrf_exempt
+def diagnoze(request):
+    patient = Patient.objects.get(id=int(request.POST.get('patient')))
+    disease = Disease.objects.get(id=int(request.POST.get('disease')))
+    highTmp = request.POST.get("hadTemp")
+    tmp = request.POST.get("temp")
+    diagnosis = Diagnosis.objects.create(doctor=request.user,patient=patient,temp=tmp,highTemp=highTmp,disease=disease)
+    syndromes = request.POST.get('syndromes').split(',')
+    for synid in syndromes:
+        diagnosis.syndromes.add(Syndrome.objects.get(id=int(synid)))
+    medicines = request.POST.get('medicines').split(',')
+    for med in medicines:
+        diagnosis.medicine.add(Medicine.objects.get(id=int(med)))
+    diagnosis.save()
+    return redirect('/diagnostics/diagnose/')
+#Diagnosis page
+def diagnosisPage(request):
+    template = loader.get_template("diagnosisPage.html")
+    syndromes = Syndrome.objects.all()
+    diseases = Disease.objects.all()
+    medicines = Medicine.objects.all()
+    patients = Patient.objects.all()
+    rules = Rule.objects.filter(ruletype=Rule.diseaseRule)
+    return HttpResponse(template.render({'rules':rules,'medicines':medicines,'syndromes':syndromes,'diseases':diseases,'patients':patients,'user':request.user}))
 #Patient
 def patientsP(request):
     template = loader.get_template("patientsPage.html")
@@ -173,6 +272,7 @@ def newPatient(request):
         patient.alergymed.add(medicine)
     patient.save()
     return redirect('/diagnostics/patients/')
+
 #Ingredient
 def ingredientsP(request):
     template = loader.get_template("ingredientsPage.html")
@@ -202,7 +302,6 @@ def editMedicineP(request,id):
         return HttpResponse(template.render({'new':True,'user':request.user,'ingredients':ingredients,'choice':dt}))
     else:
         medicine = Medicine.objects.get(id=id)
-        print(medicine.medtype)
         return HttpResponse(template.render({'new':False,'medicine':medicine,'user':request.user,'ingredients':ingredients,'oldingredients':medicine.ingredient.all(),'choice':dt}))
 @csrf_exempt
 def editMedicine(request,medicine_id):
@@ -350,7 +449,6 @@ def newRule(request):
         priority = int(request.POST.get('priority'))
     except:
         return redirect('/diagnostics/rules/')
-    print(content)
     rule = Rule.objects.create(priority=priority)
     rule.title = title
     rule.ruletype = rtype

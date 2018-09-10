@@ -81,7 +81,7 @@ class Diagnosis(models.Model):
     highTemp = models.BooleanField(verbose_name="User had high temperature")
     temp = models.SmallIntegerField(verbose_name="Temperature", blank=True)
     syndromes = models.ManyToManyField(Syndrome,verbose_name="Patient syndromes")
-    disease = models.ForeignKey(Disease, on_delete=models.CASCADE,verbose_name="Diagnosed disease")
+    disease = models.ForeignKey(Disease, on_delete=models.CASCADE,verbose_name="Diagnosed disease",null=True)
     doctor = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Doctor responsable for diagnosis")
     patient = models.ForeignKey(Patient,on_delete=models.CASCADE, verbose_name="Patient")
     time = models.DateTimeField(auto_now=True)

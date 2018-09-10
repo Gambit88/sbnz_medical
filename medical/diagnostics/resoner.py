@@ -66,7 +66,7 @@ class DiseasesVariables(BaseVariables):
         self.disease = disease
     @select_multiple_rule_variable(label="Inputed syndromes",options=getNamesList(Syndrome.objects.all()))
     def getInputSyndromes(self):
-        return getNamesList(self.diagnosis.syndroms.all())
+        return getNamesList(self.diagnosis.syndroms)
     @select_multiple_rule_variable(label="Specific disease syndromes",options=getNamesList(Syndrome.objects.all()))
     def getSDiseaseSyndromes(self):
         return getNamesList(self.disease.strongsympt.all())
@@ -78,24 +78,24 @@ class DiseasesVariables(BaseVariables):
         return self.disease.name
     @numeric_rule_variable(label = "General disease syndromes count")
     def getRegSynCount(self):
-        return len(self.disease.regularsympt)
+        return len(self.disease.regularsympt.all())
     @numeric_rule_variable(label = "Specific disease syndromes count")
     def getSpecSynCount(self):
-        return len(self.disease.strongsympt)
+        return len(self.disease.strongsympt.all())
     @numeric_rule_variable(label = "Inputed syndromes count")
     def getSynCount(self):
         return len(self.diagnosis.syndromes)
     @numeric_rule_variable(label="Matched specific syndromes count")
     def getMssCount(self):
         count=0
-        for syndrome in self.disease.strongsympt:
+        for syndrome in self.disease.strongsympt.all():
             if syndrome in self.diagnosis.syndromes:
                 count = count + 1
         return count
     @numeric_rule_variable(label="Matched general syndromes count")
     def getMgsCount(self):
         count=0
-        for syndrome in self.disease.regularsympt:
+        for syndrome in self.disease.regularsympt.all():
             if syndrome in self.diagnosis.syndromes:
                 count = count + 1
         return count
@@ -250,6 +250,7 @@ class DiseaseVariables(BaseVariables):
         return self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Number of regular syndromes connected to current disease")
     def getRegSyndCount(self):
+        res = 0
         for syndrome in self.diagnosis.syndromes.all():
             for dsynd in self.disease.regularsympt.all():
                 if syndrome.name == dsynd.name:
