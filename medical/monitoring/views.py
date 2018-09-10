@@ -13,11 +13,16 @@ from .resoner import MonitoringActions,MonitoringVariables
 # Create your views here.
 #Alarm checker area
 
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.run_rules')
 def getPage(request):
     template = loader.get_template("monitoringPage.html")
     alarms = Alarm.objects.filter(solved=False)
     return HttpResponse(template.render({'user':request.user,'alarms':alarms}))
 
+
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.run_rules')
 def solve(request,alarm_id):
     alarm = Alarm.objects.get(id=alarm_id)
     alarm.solved = True
@@ -50,7 +55,7 @@ def info(request,patient_id):
             stop_on_first_trigger=False
         )
         if monitoringActions.alarm:
-            alarm  = Alarm.objects.create(patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
+            alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
             alarm.save()
             
     else:
@@ -61,7 +66,7 @@ def info(request,patient_id):
             stop_on_first_trigger=False
         )
         if monitoringActions.alarm:
-            alarm  = Alarm.objects.create(patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
+            alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
             alarm.save()
     
     return HttpResponse(status=200)

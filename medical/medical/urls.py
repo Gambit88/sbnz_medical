@@ -26,4 +26,4 @@ urlpatterns = [
     path('monitoring/',include('monitoring.urls')),
 ]
 
-startup()
+#startup()

@@ -1,6 +1,6 @@
 from business_rules.variables import BaseVariables,numeric_rule_variable,boolean_rule_variable
 from business_rules.actions import BaseActions,rule_action
-from business_rules.fields import FIELD_NUMERIC
+from business_rules.fields import FIELD_NUMERIC,FIELD_TEXT
 
 from datetime import datetime, timedelta
 
@@ -57,9 +57,10 @@ class MonitoringVariables(BaseVariables):
 class MonitoringActions(BaseActions):
     def __init__(self):
         self.alarm = False
+        self.name = ""
     @rule_action(label='Activate alarm')
     def activateAlarm(self):
         self.alarm = True
-    @rule_action(label='Deactivate alarm')
-    def deactivateAlarm(self):
-        self.alarm = False
+    @rule_action(label='Set alarm name',params={"name":FIELD_TEXT})
+    def nameAlarm(self,name):
+        self.name = name

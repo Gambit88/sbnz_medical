@@ -149,4 +149,5 @@ class Alarm(models.Model):
     patient = models.CharField(max_length=500)
     solved = models.BooleanField()
     patientId = models.IntegerField()
+    alarm = models.CharField(max_length=500)
     

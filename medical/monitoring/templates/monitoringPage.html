@@ -136,13 +136,15 @@
                     <th>
                       Patient</th>
                     <th>
+                      Alarm</th>
+                    <th>
                       <i class="icon_cogs"></i> Solve</th>
                   </tr>
                   {% for alarm in alarms %}
                   <tr>
                     <td>{{alarm.patientId}}</td>
                     <td>{{alarm.patient}}</td>
-                    
+                    <td>{{alarm.alarm}}</td>
                     <td>
                       <div class="btn-group">
                         <a class="btn btn-info" href="{% url 'solveAlarm' alarm_id=alarm.id %}">

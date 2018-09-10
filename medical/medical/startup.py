@@ -53,5 +53,3 @@ def startup():
     except IntegrityError:
         pass
 
-
-startup()

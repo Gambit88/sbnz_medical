@@ -22,11 +22,15 @@ from monitoring.resoner import MonitoringActions,MonitoringVariables
 # Create your views here.
 #Doctor pages/resoner runners
 #SYNDROME DETECTION
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')#diagnostics.manage_rules
 def diseasesyndpage(request):
     template = loader.get_template("pickDiseasePage.html")
     diseases = Disease.objects.all()
     return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
 
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def diseaseSyndList(request,disease_name):
     template = loader.get_template("syndromeListPage.html")
     syndromes = []
@@ -50,11 +54,15 @@ def diseaseSyndList(request,disease_name):
     
     return HttpResponse(template.render({'syndromes':syndromes,'user':request.user}))
 #REPORTING
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def reportpage(request):
     template = loader.get_template("reportingPickPage.html")
     rules = Rule.objects.filter(ruletype=Rule.patientInfoRule)
     return HttpResponse(template.render({'rules':rules,'user':request.user}))
 
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def patientreportList(request):
     template = loader.get_template("patientListPage.html")
     patients = []
@@ -90,6 +98,8 @@ def patientreportList(request):
         
     return HttpResponse(template.render({'patients':patients,'user':request.user}))
 #DISEASE BASED ON SYNDROMES
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def diseaselistPage(request):
     template = loader.get_template("diseaseListPage.html")
     diseasesRaw = []
@@ -116,6 +126,8 @@ def diseaselistPage(request):
     
     return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
 #ALERGY DETECTION
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def alergyDetection(request):
     meds = []
     medicines = request.GET.get('medicines').split(',')
@@ -141,6 +153,8 @@ def alergyDetection(request):
     data = {"alarm":result}
     return HttpResponse(json.dumps(data), content_type="application/json")
 #DEASES FINDINGS
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def diseaseFinder(request):
     patient = Patient.objects.get(id=int(request.GET.get('patient')))
     highTmp = request.GET.get("hadTemp")
@@ -195,6 +209,8 @@ def diseaseFinder(request):
 
 #Diagnose
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.run_rules')
 def diagnoze(request):
     patient = Patient.objects.get(id=int(request.POST.get('patient')))
     disease = Disease.objects.get(id=int(request.POST.get('disease')))
@@ -210,6 +226,8 @@ def diagnoze(request):
     diagnosis.save()
     return redirect('/diagnostics/diagnose/')
 #Diagnosis page
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.run_rules')
 def diagnosisPage(request):
     template = loader.get_template("diagnosisPage.html")
     syndromes = Syndrome.objects.all()
@@ -219,11 +237,14 @@ def diagnosisPage(request):
     rules = Rule.objects.filter(ruletype=Rule.diseaseRule)
     return HttpResponse(template.render({'rules':rules,'medicines':medicines,'syndromes':syndromes,'diseases':diseases,'patients':patients,'user':request.user}))
 #Patient
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def patientsP(request):
     template = loader.get_template("patientsPage.html")
     patients = Patient.objects.all()
     return HttpResponse(template.render({'patients':patients,'user':request.user}))
-
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editPatientsP(request,id):
     template = loader.get_template("createPatientPage.html")
     ingredients = Ingredient.objects.all()
@@ -235,6 +256,8 @@ def editPatientsP(request,id):
         return HttpResponse(template.render({'new':False,'patient':patient,'user':request.user,'ingredients':ingredients,'medicines':medicines,'alergeni':patient.alergying.all(),'alergenm':patient.alergymed.all()}))
 
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editPatient(request,patient_id):
     patient = Patient.objects.get(id=patient_id)
     name = request.POST.get('name')
@@ -246,15 +269,19 @@ def editPatient(request,patient_id):
     patient.alergying.clear()
     patient.alergymed.clear()
     for ingredient_id in ingredients.split(","):
-        ingred = Ingredient.objects.get(id=ingredient_id)
-        patient.alergying.add(ingred)
+        if ingredient_id !="":
+            ingred = Ingredient.objects.get(id=ingredient_id)
+            patient.alergying.add(ingred)
     for medicine_id in medicines.split(","):
-        medicine = Medicine.objects.get(id=medicine_id)
-        patient.alergymed.add(medicine)
+        if medicine_id !="":
+            medicine = Medicine.objects.get(id=medicine_id)
+            patient.alergymed.add(medicine)
     patient.save()
     return redirect('/diagnostics/patients/')
     
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newPatient(request):
     patient = Patient.objects.create()
     name = request.POST.get('name')
@@ -264,23 +291,31 @@ def newPatient(request):
     patient.name = name
     patient.surname = surname
     for ingredient_id in ingredients.split(","):
-        ingred = Ingredient.objects.get(id=eval(ingredient_id))
-        patient.alergying.add(ingred)
+        if ingredient_id !="":
+            ingred = Ingredient.objects.get(id=eval(ingredient_id))
+            patient.alergying.add(ingred)
     for medicine_id in medicines.split(","):
-        medicine = Medicine.objects.get(id=eval(medicine_id))
-        patient.alergymed.add(medicine)
+        if medicine_id !="":
+            medicine = Medicine.objects.get(id=eval(medicine_id))
+            patient.alergymed.add(medicine)
     patient.save()
     return redirect('/diagnostics/patients/')
 
 #Ingredient
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ingredientsP(request):
     template = loader.get_template("ingredientsPage.html")
     ingredients = Ingredient.objects.all()
     return HttpResponse(template.render({'ingredients':ingredients,'user':request.user}))
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def createIngredientPage(request):
     template = loader.get_template("createIngredientPage.html")
     return HttpResponse(template.render({'user':request.user}))
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newIngredient(request):
     ingredient = Ingredient.objects.create()
     name = request.POST.get('name')
@@ -288,11 +323,16 @@ def newIngredient(request):
     ingredient.save()
     return redirect('/diagnostics/ingredients/')
 #Medicine
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def medicinesP(request):
     template = loader.get_template("medicinesPage.html")
     medicines = Medicine.objects.all()
     dt = dict(Medicine.Type_CHOICES)
     return HttpResponse(template.render({'medicines':medicines,'user':request.user, 'dict':dt}))
+
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editMedicineP(request,id):
     template = loader.get_template("createMedicinePage.html")
     ingredients = Ingredient.objects.all()
@@ -303,6 +343,8 @@ def editMedicineP(request,id):
         medicine = Medicine.objects.get(id=id)
         return HttpResponse(template.render({'new':False,'medicine':medicine,'user':request.user,'ingredients':ingredients,'oldingredients':medicine.ingredient.all(),'choice':dt}))
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editMedicine(request,medicine_id):
     medicine = Medicine.objects.get(id=medicine_id)
     name = request.POST.get('name')
@@ -312,12 +354,15 @@ def editMedicine(request,medicine_id):
     medicine.medtype = medType
     medicine.ingredient.clear()
     for ing_id in ingredients.split(","):
-        ing = Ingredient.objects.get(id=ing_id)
-        medicine.ingredient.add(ing)
+        if ing_id!="":
+            ing = Ingredient.objects.get(id=ing_id)
+            medicine.ingredient.add(ing)
     medicine.save()
     return redirect('/diagnostics/medicines/')
     
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newMedicine(request):
     medicine = Medicine.objects.create()
     name = request.POST.get('name')
@@ -326,19 +371,27 @@ def newMedicine(request):
     medicine.name = name
     medicine.medtype = medType
     for ing_id in ingredients.split(","):
-        ing = Ingredient.objects.get(id=ing_id)
-        medicine.ingredient.add(ing)
+        if ing_id!="":
+            ing = Ingredient.objects.get(id=ing_id)
+            medicine.ingredient.add(ing)
     medicine.save()
     return redirect('/diagnostics/medicines/')
 #Syndrome
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def syndromesP(request):
     template = loader.get_template("syndromesPage.html")
     syndromes = Syndrome.objects.all()
     return HttpResponse(template.render({'syndromes':syndromes,'user':request.user}))
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def createSyndromePage(request):
     template = loader.get_template("createSyndromePage.html")
     return HttpResponse(template.render({'user':request.user}))
+
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newSyndrome(request):
     syndrome = Syndrome.objects.create()
     name = request.POST.get('name')
@@ -346,10 +399,14 @@ def newSyndrome(request):
     syndrome.save()
     return redirect('/diagnostics/syndromes/')
 #Disease
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def diseasesP(request):
     template = loader.get_template("diseasesPage.html")
     diseases = Disease.objects.all()
     return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editDiseasesP(request,id):
     template = loader.get_template("createDiseasePage.html")
     syndromes = Syndrome.objects.all()
@@ -359,6 +416,8 @@ def editDiseasesP(request,id):
         disease = Disease.objects.get(id=id)
         return HttpResponse(template.render({'new':False,'disease':disease,'user':request.user,'syndromes':syndromes,'strongsynd':disease.strongsympt.all(),'regularsynd':disease.regularsympt.all()}))
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editDisease(request,disease_id):
     disease = Disease.objects.get(id=disease_id)
     name = request.POST.get('name')
@@ -368,15 +427,19 @@ def editDisease(request,disease_id):
     disease.strongsympt.clear()
     disease.regularsympt.clear()
     for syn_id in regSyn.split(","):
-        syndrome = Syndrome.objects.get(id=syn_id)
-        disease.regularsympt.add(syndrome)
+        if syn_id != "":
+            syndrome = Syndrome.objects.get(id=syn_id)
+            disease.regularsympt.add(syndrome)
     for syn_id in strSyn.split(","):
-        syndrome = Syndrome.objects.get(id=syn_id)
-        disease.strongsympt.add(syndrome)
+        if syn_id != "":
+            syndrome = Syndrome.objects.get(id=syn_id)
+            disease.strongsympt.add(syndrome)
     disease.save()
     return redirect('/diagnostics/diseases/')
     
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newDisease(request):
     disease = Disease.objects.create()
     name = request.POST.get('name')
@@ -384,24 +447,32 @@ def newDisease(request):
     strSyn = request.POST.get('strSynd')
     disease.name = name
     for syn_id in regSyn.split(","):
-        syndrome = Syndrome.objects.get(id=syn_id)
-        disease.regularsympt.add(syndrome)
+        if syn_id != "":
+            syndrome = Syndrome.objects.get(id=syn_id)
+            disease.regularsympt.add(syndrome)
     for syn_id in strSyn.split(","):
-        syndrome = Syndrome.objects.get(id=syn_id)
-        disease.strongsympt.add(syndrome)
+        if syn_id != "":
+            syndrome = Syndrome.objects.get(id=syn_id)
+            disease.strongsympt.add(syndrome)
     disease.save()
     return redirect('/diagnostics/diseases/')
 #RuleExtentions
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleextsP(request):
     template = loader.get_template("ruleExtPage.html")
     fileRules = FileRule.objects.all()
     dt = dict(FileRule.Rule_CHOICES)
     return HttpResponse(template.render({'fileRules':fileRules,'user':request.user, 'dict':dt}))
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def createRuleextPage(request):
     template = loader.get_template("createRuleExtPage.html")
     dt = list(FileRule.Rule_CHOICES)
     return HttpResponse(template.render({'user':request.user,'rule':dt}))
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newRuleext(request):
     try:
         params = request.POST.get('params')
@@ -429,17 +500,23 @@ def newRuleext(request):
 
     return redirect('/diagnostics/ruleextensions/')
 #Rules
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def rulesP(request):
     template = loader.get_template("rulesPage.html")
     rules = Rule.objects.all()
     dt = dict(Rule.Type_CHOICES)
     return HttpResponse(template.render({'rules':rules,'user':request.user, 'dict':dt}))
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def editRuleP(request,id):
     template = loader.get_template("createRulePage.html")
     if id=="None":
         return HttpResponse(template.render({'dict':list(Rule.Type_CHOICES),'user':request.user}))
 
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def newRule(request):
     title = request.POST.get('title')
     rtype = request.POST.get('type')
@@ -455,10 +532,14 @@ def newRule(request):
     rule.save()
     return redirect('/diagnostics/rules/')
 @csrf_exempt
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def deleteRule(request,ruleset_id):
     rule = Rule.objects.get(id=ruleset_id)
     rule.delete()
     return redirect('/diagnostics/rules/')
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpDdmr(request):
     my_file = Path("./diagnostics/custom_variables_d.py")
     if my_file.is_file():
@@ -468,15 +549,23 @@ def ruleHelpDdmr(request):
     else:
         data = export_rule_data(DiseaseVariables, DiseaseActions)
         return HttpResponse(json.dumps(data), content_type="application/json")
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpPadr(request):
     data = export_rule_data(AlergyVariables, AlergyActions)
     return HttpResponse(json.dumps(data), content_type="application/json")
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpFdsr(request):
     data = export_rule_data(SyndromeVariables, SyndromeActions)
     return HttpResponse(json.dumps(data), content_type="application/json")
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpDdbosr(request):
     data = export_rule_data(DiseasesVariables, DiseasesActions)
     return HttpResponse(json.dumps(data), content_type="application/json")
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpMar(request):
     my_file = Path("./monitoring/custom_variables_m.py")
     if my_file.is_file():
@@ -486,6 +575,8 @@ def ruleHelpMar(request):
     else:
         data = export_rule_data(MonitoringVariables, MonitoringActions)
         return HttpResponse(json.dumps(data), content_type="application/json")
+@login_required(login_url="/diagnostics/loginPage")
+@permission_required('diagnostics.manage_rules')
 def ruleHelpRfgp(request):
     my_file = Path("./diagnostics/custom_variables_p.py")
     if my_file.is_file():
@@ -504,15 +595,17 @@ def loginF(request):#TOTALY DONE
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        if user.has_perm('rule.manage_rules'):
-            return redirect('/diagnostics/patients/')
-        return redirect('/diagnostics/diagnose/')
+        if user.has_perm('diagnostics.manage_rules'):
+            return redirect('patientsPage')
+        else:
+            return redirect('diagnosePage')
     else:
-        return redirect('/diagnostics/loginPage/')
+        return redirect('loginP')
 
+@login_required(login_url="/diagnostics/loginPage/")
 def logoutF(request):#TOTALY DONE
     logout(request)
-    return redirect('/diagnostics/loginPage/')
+    return redirect('loginP')
 
 def loginP(request):#TOTALY DONE
     template = loader.get_template("static/login.html")
