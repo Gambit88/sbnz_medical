@@ -5,3 +5,4 @@
 ## Requirements:
 - Django v 2.0.6
 - business-rules v 1.0.1
+- websockets v 5.0.1
