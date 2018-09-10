@@ -56,7 +56,7 @@ $('#tSelect').change(function(){
     }
 });
 
-$('#submit').submit(function(e) {
+$('#confirmNew').submit(function(e) {
     $('#cont').val(JSON.stringify({'conditions':$('#conditions').conditionsBuilder("data"),'actions':$('#actions').actionsBuilder("data")}));
     return true;
 });

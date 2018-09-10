@@ -15,7 +15,7 @@ from pathlib import Path
 from importlib import import_module
 import json
 
-from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule
+from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule,Diagnosis,DiagnosedSyndromes
 from monitoring.rule_writer import customMonitoringVariablesWriter
 from .rule_writer import customDiagnosisVariablesWriter
 from .resoner import AlergyActions,AlergyVariables,DiseaseActions,DiseaseVariables,DiseasesActions,DiseasesVariables,PatientActions,PatientVariables,SyndromeActions,SyndromeVariables
@@ -25,6 +25,101 @@ from monitoring.resoner import MonitoringActions,MonitoringVariables
 def something(request):
     pass
 
+#Doctor pages/resoner runners
+#SYNDROME DETECTION
+def diseasesyndpage(request):
+    template = loader.get_template("pickDiseasePage.html")
+    diseases = Disease.objects.all()
+    return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
+
+def diseaseSyndList(request,disease_name):
+    template = loader.get_template("syndromeListPage.html")
+    syndromes = []
+    disease = Disease.objects.get(name=disease_name)
+    rules = Rule.objects.filter(ruletype=Rule.findDiseaseSymptomsRule).order_by('-priority')
+    engRules = []
+    for rule in rules:
+        engRules.append(json.loads(rule.content))
+    for syndrome in Syndrome.objects.all():
+        syndromeActions = SyndromeActions()
+        run_all(rule_list=engRules,
+            defined_variables=SyndromeVariables(disease,syndrome),
+            defined_actions=syndromeActions,
+            stop_on_first_trigger=True
+           )
+        if syndromeActions.show:
+            if syndromeActions.top:
+                syndromes.insert(0,syndrome)
+            else:
+                syndromes.append(syndrome)
+    
+    return HttpResponse(template.render({'syndromes':syndromes,'user':request.user}))
+#REPORTING
+def reportpage(request):
+    template = loader.get_template("reportingPickPage.html")
+    rules = Rule.objects.filter(ruletype=Rule.patientInfoRule)
+    return HttpResponse(template.render({'rules':rules,'user':request.user}))
+
+def patientreportList(request):
+    template = loader.get_template("patientListPage.html")
+    patients = []
+    rulesId = request.GET.get('rules').split(',')
+    rules = Rule.objects.filter(ruletype=Rule.findDiseaseSymptomsRule).order_by('-priority')
+    engRules = []
+    for rule in rules:
+        if str(rule.id) in rulesId:
+            engRules.append(json.loads(rule.content))
+
+    my_file = Path("./diagnostics/custom_variables_p.py")
+    if my_file.is_file():
+        module = import_module('.custom_variables_p',package="diagnostics")
+        for patient in Patient.objects.all():
+            patientActions = PatientActions()
+            run_all(rule_list=engRules,
+                defined_variables=module.CustomPatientVariables(patient),
+                defined_actions=patientActions,
+                stop_on_first_trigger=True
+            )
+            if patientActions.show:
+                patients.append(patient)
+    else:
+        for patient in Patient.objects.all():
+            patientActions = PatientActions()
+            run_all(rule_list=engRules,
+                defined_variables=PatientVariables(patient),
+                defined_actions=patientActions,
+                stop_on_first_trigger=True
+            )
+            if patientActions.show:
+                patients.append(patient)
+        
+    return HttpResponse(template.render({'patients':patients,'user':request.user}))
+#DISEASE SYNDROMES
+def diseaselistPage(request):
+    template = loader.get_template("diseaseListPage.html")
+    diseasesRaw = []
+    diseases = []
+    diagnosis = DiagnosedSyndromes()
+    syndromes = request.GET.get('syndromes').split(',')
+    for synid in syndromes:
+        diagnosis.syndromes.append(Syndrome.objects.get(id=int(synid)))
+    rules = Rule.objects.filter(ruletype=Rule.findDiseaseRule).order_by('-priority')
+    engRules = []
+    for rule in rules:
+        engRules.append(json.loads(rule.content))
+    for disease in Disease.objects.all():
+        diseaseActions = DiseasesActions()
+        run_all(rule_list=engRules,
+            defined_variables=DiseasesVariables(diagnosis,disease),
+            defined_actions=diseaseActions,
+            stop_on_first_trigger=True
+           )
+        if diseaseActions.show:
+            diseasesRaw.append((disease,diseaseActions.correctSyndromes))
+    for rawDis in sorted(diseasesRaw,key= lambda element:element[1],reverse=True):
+        diseases.append(rawDis[0])
+    
+    return HttpResponse(template.render({'diseases':diseases,'user':request.user}))
 #Patient
 def patientsP(request):
     template = loader.get_template("patientsPage.html")
@@ -243,22 +338,19 @@ def rulesP(request):
     return HttpResponse(template.render({'rules':rules,'user':request.user, 'dict':dt}))
 def editRuleP(request,id):
     template = loader.get_template("createRulePage.html")
-    dt = list(Rule.Type_CHOICES)
     if id=="None":
-        return HttpResponse(template.render({'new':True,'user':request.user,'dict':dt}))
-    else:
-        rule = Rule.objects.get(id=id)
-        return HttpResponse(template.render({'new':False,'user':request.user,'dict':dt,'rule':rule}))
+        return HttpResponse(template.render({'dict':list(Rule.Type_CHOICES),'user':request.user}))
+
 @csrf_exempt
 def newRule(request):
     title = request.POST.get('title')
     rtype = request.POST.get('type')
+    content = request.POST.get('content')
     try:
         priority = int(request.POST.get('priority'))
     except:
         return redirect('/diagnostics/rules/')
-    print(priority)
-    content = request.POST.get('content')
+    print(content)
     rule = Rule.objects.create(priority=priority)
     rule.title = title
     rule.ruletype = rtype

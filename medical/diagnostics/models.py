@@ -141,4 +141,6 @@ class FileRule(models.Model):
     class Meta:
         unique_together = ('extendedRule','params')
 
-
+class DiagnosedSyndromes():
+    def __init__(self):
+        self.syndromes = []

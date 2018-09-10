@@ -40,9 +40,7 @@ urlpatterns = [
 
     path('rules/',views.rulesP,name="rulesPage"),
     path('rules/create/',views.editRuleP,{'id':'None'},name="createRulePage"),
-    #path('rules/create/<int:id>/',views.editRuleP,name="editRulePage"),
     path('rules/new/',views.newRule,name="newRule"),
-    #path('rules/edit/<int:ruleset_id>/',views.editRule,name="editRule"),
     path('rules/delete/<int:ruleset_id>/',views.deleteRule,name="deleteRule"),
     path('rules/help/ddmr/',views.ruleHelpDdmr),
     path('rules/help/padr/',views.ruleHelpPadr),
@@ -54,10 +52,11 @@ urlpatterns = [
     path('diagnose/',views.something,name="diagnosePage"),
     path('diagnose/autodiagnose/',views.something,name=""),
     path('diagnose/diseases/',views.something,name=""),
-    path('diagnose/syndromes/',views.something,name=""),
+    path('diagnose/syndromes/',views.diseasesyndpage,name="diagSyndPickPage"),
+    path('diagnose/syndromes/<str:disease_name>/',views.diseaseSyndList,name="diagSyndPage"),
     path('diagnose/prescribe/',views.something,name=""),
 
-    path('reports/', views.something,name="reportsPage"),
-    path('reports/<int:ruleset_id>/', views.something,name=""),
+    path('reports/', views.reportpage,name="reportsPage"),
+    path('reports/get/', views.patientreportList,name="reportsResults"),
 
 ]

@@ -144,9 +144,15 @@ class SyndromeVariables(BaseVariables):
 class SyndromeActions(BaseActions):
     def __init__(self):
         self.show = False
+        self.top = False
     @rule_action(label='Add syndrome to show list')
-    def showDisease(self):
+    def show1Disease(self):
         self.show = True
+        self.top = False
+    @rule_action(label='Add syndrome to top of show list')
+    def show2Disease(self):
+        self.show = True
+        self.top = True
 
 #for finding which disease might be a problem rules
 class DiseaseVariables(BaseVariables):
