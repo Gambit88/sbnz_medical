@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="refresh" content="10">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Creative - Bootstrap 3 Responsive Admin Template">
   <meta name="author" content="GeeksLabs">
@@ -128,20 +129,20 @@
             <section class="panel">
 
               <table class="table table-striped table-advance table-hover">
-                <tbody>
+                <tbody id="tbody">
                   <tr>
                     <th>
-                       #</th>
+                      # Patient Id</th>
                     <th>
-                      <i class="icon_document_alt"></i>Alarm</th>
+                      Patient</th>
                     <th>
                       <i class="icon_cogs"></i> Solve</th>
                   </tr>
                   {% for alarm in alarms %}
                   <tr>
-                    <td>{{alarm.id}}</td>
-                    <td>{{alarm.name}}</td>
-                    <!--HERE-->
+                    <td>{{alarm.patientId}}</td>
+                    <td>{{alarm.patient}}</td>
+                    
                     <td>
                       <div class="btn-group">
                         <a class="btn btn-info" href="{% url 'solveAlarm' alarm_id=alarm.id %}">

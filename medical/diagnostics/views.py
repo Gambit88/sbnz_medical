@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.shortcuts import render,redirect
 from django.template import loader
 from django.http import HttpResponse
@@ -108,7 +107,7 @@ def diseaselistPage(request):
         run_all(rule_list=engRules,
             defined_variables=DiseasesVariables(diagnosis,disease),
             defined_actions=diseaseActions,
-            stop_on_first_trigger=True
+            stop_on_first_trigger=False
            )
         if diseaseActions.show:
             diseasesRaw.append((disease,diseaseActions.correctSyndromes))
@@ -177,7 +176,7 @@ def diseaseFinder(request):
             run_all(rule_list=engRules,
                 defined_variables=diseaseVariables,
                 defined_actions=diseaseActions,
-                stop_on_first_trigger=True
+                stop_on_first_trigger=False
             )
     else:
         for disease in Disease.objects.all():
@@ -186,7 +185,7 @@ def diseaseFinder(request):
             run_all(rule_list=engRules,
                 defined_variables=diseaseVariables,
                 defined_actions=diseaseActions,
-                stop_on_first_trigger=True
+                stop_on_first_trigger=False
             )
     result = {}
     result['disease'] = helper.diseaseName

@@ -144,3 +144,9 @@ class FileRule(models.Model):
 class DiagnosedSyndromes():
     def __init__(self):
         self.syndromes = []
+
+class Alarm(models.Model):
+    patient = models.CharField(max_length=500)
+    solved = models.BooleanField()
+    patientId = models.IntegerField()
+    

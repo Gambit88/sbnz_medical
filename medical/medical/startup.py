@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
 
+
 def startup():
     try:
         User.objects.create_superuser("admin","admin@adminadminadmin.com","123admin")
@@ -51,4 +52,6 @@ def startup():
         user.save()
     except IntegrityError:
         pass
-    
+
+
+startup()
