@@ -346,7 +346,21 @@ class PatientVariables(BaseVariables):
                     else:
                         results.append(diagnostics.disease.id)
         return len(results)
-
+    #OVO PRAVILO
+    def getDiseaseNumByMedTypeNot(self,medicineType,days):
+        results = []
+        timeFrame = datetime.now() - timedelta(days = days)
+        for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
+            tmp = True
+            for medicine in diagnostics.medicine.all():
+                if medicine.medtype == medicineType:
+                    tmp = False
+            if tmp:
+                if diagnostics.disease.id in results:
+                    pass
+                else:
+                    results.append(diagnostics.disease.id)
+        return len(results)
 
 class PatientActions(BaseActions):
     def __init__(self):

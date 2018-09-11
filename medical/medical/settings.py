@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'monitoring',
-    'diagnostics'
+    'diagnostics',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -125,3 +126,8 @@ STATICFILES_DIRS = [
     '../static/',
     os.path.join(BASE_DIR, "static"),
 ]
+
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
+}

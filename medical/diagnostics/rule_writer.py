@@ -1,10 +1,12 @@
+import codecs
+
 def customDiagnosisVariablesWriter(rules):
     #potencijalno dodati variable kao import
     file = None
     if(len(rules)<1):
         return
     if(rules[0].extendsRuleset=="disv"):
-        file = open("./diagnostics/custom_variables_d.py",'w')
+        file = codecs.open("./diagnostics/custom_variables_d.py",'w','utf-8')
         file.write("from business_rules.variables import numeric_rule_variable\n\n")
         file.write("from .resoner import DiseaseVariables\n\n")
         file.write("class CustomDiseaseVariables(DiseaseVariables):\n")
@@ -16,15 +18,16 @@ def customDiagnosisVariablesWriter(rules):
         file.write("class CustomPatientVariables(PatientVariables):\n")
     
     for rule in rules:
-        parametars = rule.params.split(",")
+        params = rule.params
+        parametars = params.split(",")
         if(rule.extendsRuleset=="disv"):
             if(rule.extendedRule=="dv_hdc"):
                 file.write("\t@numeric_rule_variable(label='Patient had "+parametars[0]+" diagnosed multiple times in last "+ parametars[1] +" days')\n")
-                file.write("\tdef customRuleHDC"+parametars[0].replace(" ", "")+parametars[1].replace(" ", "")+"(self):\n")
+                file.write("\tdef customRuleHDC"+parametars[0].replace(" ", "").replace("š","s").replace("ž","z").replace("đ","dj").replace("ć","c").replace("č","c")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.hadDisease('"+parametars[0]+"',"+parametars[1]+")\n")
             elif(rule.extendedRule=="dv_hsc"):
                 file.write("\t@numeric_rule_variable(label='Patient had "+ parametars[0] +" syndrome multiple times in last "+ parametars[1] +" days')\n")
-                file.write("\tdef customRuleHSC"+parametars[0].replace(" ", "")+parametars[1].replace(" ", "")+"(self):\n")
+                file.write("\tdef customRuleHSC"+parametars[0].replace(" ", "").replace("š","s").replace("ž","z").replace("đ","dj").replace("ć","c").replace("č","c")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.hadSyndrome('"+parametars[0]+"',"+parametars[1]+")\n")
             elif(rule.extendedRule=="dv_htc"):
                 file.write("\t@numeric_rule_variable(label='Patient had high temperature multiple times in last "+ parametars[0] +" days')\n")
@@ -55,4 +58,8 @@ def customDiagnosisVariablesWriter(rules):
                 file.write("\t@numeric_rule_variable(label='Number of diseases that had medicine of "+ parametars[0] +" type prescribed in last "+ parametars[1] +" days')\n")
                 file.write("\tdef customRuleDMC"+parametars[0].replace(" ", "")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.getDiseaseNumByMedType('"+parametars[0]+"',"+parametars[1]+")\n")
+            elif(rule.extendedRule=="pv_mcn"):
+                file.write("\t@numeric_rule_variable(label='Number of diseases that did not have medicine of "+ parametars[0] +" type prescribed in last "+ parametars[1] +" days')\n")
+                file.write("\tdef customRuleMCN"+parametars[0].replace(" ", "")+parametars[1].replace(" ", "")+"(self):\n")
+                file.write("\t\treturn self.getDiseaseNumByMedTypeNot('"+parametars[0]+"',"+parametars[1]+")\n")
     file.close()

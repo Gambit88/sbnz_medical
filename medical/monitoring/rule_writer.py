@@ -1,7 +1,9 @@
+import codecs
+
 def customMonitoringVariablesWriter(rules):
     if(len(rules)<1):
         return
-    file = open("./monitoring/custom_variables_m.py",'w')
+    file = codecs.open("./monitoring/custom_variables_m.py",'w','utf-8')
     file.write("from business_rules.variables import numeric_rule_variable,boolean_rule_variable\n\n")
     file.write("from .resoner import MonitoringVariables\n\n")
     file.write("class CustomMonitoringVariables(MonitoringVariables):\n")
@@ -18,7 +20,7 @@ def customMonitoringVariablesWriter(rules):
                 file.write("\t\treturn self.getHearthRate("+parametars[0]+")\n")
             elif(rule.extendedRule=="mv_dih"):
                 file.write("\t@boolean_rule_variable(label='"+ parametars[0] +" is in patients disease records history')\n")
-                file.write("\tdef customRuleDIH"+parametars[0].replace(" ", "")+"(self):\n")
+                file.write("\tdef customRuleDIH"+parametars[0].replace(" ", "").replace("š","s").replace("ž","z").replace("đ","dj").replace("ć","c").replace("č","c")+"(self):\n")
                 file.write("\t\treturn self.checkDiseaseInHistory('"+parametars[0]+"')\n")
             elif(rule.extendedRule=="mv_owu"):
                 file.write("\t@boolean_rule_variable(label='Oxygen level went up in last "+ parametars[0] +" minutes')\n")

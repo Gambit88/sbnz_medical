@@ -114,6 +114,7 @@ class FileRule(models.Model):
     ruleNMT = 'pv_cmt'
     ruleDPMT = 'pv_dpc'
     ruleDNMT = 'pv_dmc'
+    ruleDNMTN = 'pv_mcn'
 
     Rule_CHOICES = (
 		(ruleTLL, '(Monitoring ruleset) Amount of urin relieved in last (n) hours. (Params: time_in_hours)'),
@@ -130,7 +131,8 @@ class FileRule(models.Model):
 		(ruleNMT, '(Patient data finding ruleset) Number of medicines of (x) type prescribed in last (n) days. (Params: medicine_type,number_of_days)'),
 		(ruleDPMT, '(Patient data finding ruleset) Number of different doctors prescribing medicine of (x) type in last (n) days (Params: medicine_type,number_of_days)'),
 		(ruleDNMT, '(Patient data finding ruleset) Number of diseases that had medicine of (x) type prescribed in last (n) days (Params: medicine_type,number_of_days)'),
-		)
+		(ruleDNMTN, '(Patient data finding ruleset) Number of diseases that did not have medicine of (x) type prescribed in last (n) days (Params: medicine_type,number_of_days)'),
+        )
     Ruleset_CHOICES = (
         (monitoringVariable,"Extends monitoring ruleset"),
         (patientVariable,"Extends patient data finding ruleset"),
