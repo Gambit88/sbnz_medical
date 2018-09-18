@@ -26,7 +26,7 @@ def customDiagnosisVariablesWriter(rules):
                 file.write("\tdef customRuleHDC"+parametars[0].replace(" ", "").replace("š","s").replace("ž","z").replace("đ","dj").replace("ć","c").replace("č","c")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.hadDisease('"+parametars[0]+"',"+parametars[1]+")\n")
             elif(rule.extendedRule=="dv_hsc"):
-                file.write("\t@numeric_rule_variable(label='Patient had "+ parametars[0] +" syndrome multiple times in last "+ parametars[1] +" days')\n")
+                file.write("\t@numeric_rule_variable(label='Patient had "+ parametars[0] +" symptom multiple times in last "+ parametars[1] +" days')\n")
                 file.write("\tdef customRuleHSC"+parametars[0].replace(" ", "").replace("š","s").replace("ž","z").replace("đ","dj").replace("ć","c").replace("č","c")+parametars[1].replace(" ", "")+"(self):\n")
                 file.write("\t\treturn self.hadSyndrome('"+parametars[0]+"',"+parametars[1]+")\n")
             elif(rule.extendedRule=="dv_htc"):

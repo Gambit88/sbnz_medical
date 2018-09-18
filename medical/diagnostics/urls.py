@@ -14,9 +14,9 @@ urlpatterns = [
     path('patients/new/',views.newPatient,name="newPatient"),
     path('patients/edit/<int:patient_id>/',views.editPatient,name="editPatient"),
 
-    path('syndromes/',views.syndromesP,name="syndromesPage"),
-    path('syndromes/create/',views.createSyndromePage,name="createSyndromePage"),
-    path('syndromes/new/',views.newSyndrome,name="newSyndrome"),
+    path('symptoms/',views.syndromesP,name="syndromesPage"),
+    path('symptoms/create/',views.createSyndromePage,name="createSyndromePage"),
+    path('symptoms/new/',views.newSyndrome,name="newSyndrome"),
 
     path('diseases/',views.diseasesP,name="diseasesPage"),
     path('diseases/create/',views.editDiseasesP,{'id':'None'},name="createDiseasePage"),
@@ -39,6 +39,8 @@ urlpatterns = [
     path('ruleextensions/create/',views.createRuleextPage,name="createRuleextensionPage"),
 
     path('rules/',views.rulesP,name="rulesPage"),
+    path('rules/view/',views.rulesPickPage,name="rulesListPickPage"),
+    path('rules/view/result/',views.rulesAllPage,name="rulesListPage"),
     path('rules/create/',views.editRuleP,{'id':'None'},name="createRulePage"),
     path('rules/new/',views.newRule,name="newRule"),
     path('rules/delete/<int:ruleset_id>/',views.deleteRule,name="deleteRule"),
@@ -52,9 +54,10 @@ urlpatterns = [
     path('diagnose/',views.diagnosisPage,name="diagnosePage"),
     path('diagnose/alergy/',views.alergyDetection,name="alergy"),
     path('diagnose/autodiagnose/',views.diseaseFinder,name="diseaseFinder"),
+    path('diagnose/diseasesymptomes/',views.symPickPage,name="diseasesSymptomList"),
     path('diagnose/diseases/',views.diseaselistPage,name="diseaseList"),
-    path('diagnose/syndromes/',views.diseasesyndpage,name="diagSyndPickPage"),
-    path('diagnose/syndromes/<str:disease_name>/',views.diseaseSyndList,name="diagSyndPage"),
+    path('diagnose/symptoms/',views.diseasesyndpage,name="diagSyndPickPage"),
+    path('diagnose/symptoms/<str:disease_name>/',views.diseaseSyndList,name="diagSyndPage"),
     path('diagnose/prescribe/',views.diagnoze,name="prescribeMed"),
 
     path('reports/', views.reportpage,name="reportsPage"),

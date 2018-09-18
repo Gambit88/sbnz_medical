@@ -3,7 +3,7 @@ $('#testAlergy').click(function(){
 });
 
 $('#detectDisease').click(function(){
-    $.getJSON('autodiagnose/',{'rules':$('#rules').val(),'patient':$('#patient').val(),'hadTemp':$('#hadTemp').val(),'temp':$('#temp').val(),'syndromes':$('#syndromes').val()},function(data){
+    $.getJSON('autodiagnose/',{'rules':$('#rules').val(),'patient':$('#patient').val(),'hadTemp':$('#hadTemp').val(),'temp':$('#temp').val(),'symptoms':$('#symptoms').val()},function(data){
         $('#detectionResult').empty();
         $('#detectionResult').append("<strong>Desease:</strong>\t"+data.disease+" \t<strong>Probability:</strong>\t"+data.probability+"%");
         $('#diseaseTestResults').show(200);
@@ -21,7 +21,7 @@ $('#hadTemp').change(function(){
 });
 
 $('#synSelect').change(function(){
-    $("#syndromes").val($("#synSelect").val());
+    $("#symptoms").val($("#synSelect").val());
     return true;
 });
 $('#ruleSelect').change(function(){
@@ -49,5 +49,5 @@ $('#testAlergy').click(function(){
 });
 
 $('#posibleDisList').click(function(){
-    window.location.href = "diseases/?syndromes="+$('#syndromes').val();
+    window.location.href = "diseases/?symptoms="+$('#symptoms').val();
 });

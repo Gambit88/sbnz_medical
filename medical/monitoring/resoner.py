@@ -19,7 +19,7 @@ class MonitoringVariables(BaseVariables):
     def getTimedLiquidLevel(self,hours):
         summary = 0
         lastHours = datetime.now() - timedelta(hours = hours)
-        for monitorings in self.patient.monitoring_set.filter(time__gt=lastHours):
+        for monitorings in self.patient.monitoringinfo_set.filter(time__gt=lastHours):
             summary = summary + monitorings.liquidlevel
         return summary
     #@numeric_rule_variable(label="Number of hearthbeats in last n secounds")#OVO PRAVILO
@@ -27,7 +27,7 @@ class MonitoringVariables(BaseVariables):
         return (self.monitoring.heartratebeat/60)*secounds
     #@boolean_rule_variable(label="x disease is in patients records history")#OVO PRAVILO
     def checkDiseaseInHistory(self,disease):
-        for diagnosis in self.patient.diagnostics_set.all():
+        for diagnosis in self.patient.diagnosis_set.all():
             if disease == diagnosis.disease.name:
                 return True
         return  False
@@ -35,7 +35,7 @@ class MonitoringVariables(BaseVariables):
     def oxygenWentUp(self,minutes):
         timeFrame = datetime.now() - timedelta(minutes = minutes)
         tmpLevel = None
-        for monitorings in self.patient.monitoring_set.filter(time__gt=timeFrame).order_by('time'):
+        for monitorings in self.patient.monitoringinfo_set.filter(time__gt=timeFrame).order_by('time'):
             if tmpLevel!=None:
                 if tmpLevel<monitorings.oxygenlevel:
                     return True
@@ -46,7 +46,7 @@ class MonitoringVariables(BaseVariables):
     def oxygenWentDown(self,minutes):
         timeFrame = datetime.now() - timedelta(minutes = minutes)
         tmpLevel = None
-        for monitorings in self.patient.monitoring_set.filter(time__gt=timeFrame).order_by('time'):
+        for monitorings in self.patient.monitoringinfo_set.filter(time__gt=timeFrame).order_by('time'):
             if tmpLevel!=None:
                 if tmpLevel>monitorings.oxygenlevel:
                     return True

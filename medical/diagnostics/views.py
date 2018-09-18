@@ -14,14 +14,14 @@ from pathlib import Path
 from importlib import import_module
 import json
 
-from .models import Patient,Ingredient,Medicine,Disease,Syndrome,FileRule,Rule,Diagnosis,DiagnosedSyndromes,RezonerHelper
+from .models import Patient,Ingredient,Medicine,Disease,Symptom,FileRule,Rule,Diagnosis,DiagnosedSymptomes,RezonerHelper
 from monitoring.rule_writer import customMonitoringVariablesWriter
 from .rule_writer import customDiagnosisVariablesWriter
 from .resoner import AlergyActions,AlergyVariables,DiseaseActions,DiseaseVariables,DiseasesActions,DiseasesVariables,PatientActions,PatientVariables,SyndromeActions,SyndromeVariables
 from monitoring.resoner import MonitoringActions,MonitoringVariables
 # Create your views here.
 #Doctor pages/resoner runners
-#SYNDROME DETECTION
+#symptom DETECTION
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.run_rules')#diagnostics.manage_rules
 def diseasesyndpage(request):
@@ -33,26 +33,26 @@ def diseasesyndpage(request):
 @permission_required('diagnostics.run_rules')
 def diseaseSyndList(request,disease_name):
     template = loader.get_template("syndromeListPage.html")
-    syndromes = []
+    symptoms = []
     disease = Disease.objects.get(name=disease_name)
     rules = Rule.objects.filter(ruletype=Rule.findDiseaseSymptomsRule).order_by('-priority')
     engRules = []
     for rule in rules:
         engRules.append(json.loads(rule.content))
-    for syndrome in Syndrome.objects.all():
+    for symptom in Symptom.objects.all():
         syndromeActions = SyndromeActions()
         run_all(rule_list=engRules,
-            defined_variables=SyndromeVariables(disease,syndrome),
+            defined_variables=SyndromeVariables(disease,symptom),
             defined_actions=syndromeActions,
             stop_on_first_trigger=True
            )
         if syndromeActions.show:
             if syndromeActions.top:
-                syndromes.insert(0,syndrome)
+                symptoms.insert(0,symptom)
             else:
-                syndromes.append(syndrome)
+                symptoms.append(symptom)
     
-    return HttpResponse(template.render({'syndromes':syndromes,'user':request.user}))
+    return HttpResponse(template.render({'symptoms':symptoms,'user':request.user}))
 #REPORTING
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.run_rules')
@@ -104,10 +104,10 @@ def diseaselistPage(request):
     template = loader.get_template("diseaseListPage.html")
     diseasesRaw = []
     diseases = []
-    diagnosis = DiagnosedSyndromes()
-    syndromes = request.GET.get('syndromes').split(',')
-    for synid in syndromes:
-        diagnosis.syndromes.append(Syndrome.objects.get(id=int(synid)))
+    diagnosis = DiagnosedSymptomes()
+    symptoms = request.GET.get('symptoms').split(',')
+    for synid in symptoms:
+        diagnosis.symptoms.append(Symptom.objects.get(id=int(synid)))
     rules = Rule.objects.filter(ruletype=Rule.findDiseaseRule).order_by('-priority')
     engRules = []
     for rule in rules:
@@ -157,17 +157,22 @@ def alergyDetection(request):
 @permission_required('diagnostics.run_rules')
 def diseaseFinder(request):
     patient = Patient.objects.get(id=int(request.GET.get('patient')))
-    highTmp = request.GET.get("hadTemp")
-    if highTmp=="False":
+    highTmp = bool(request.GET.get("hadTemp"))
+    if highTmp==False:
         tmp = 36
     else:
         tmp = request.GET.get("temp")
-        if tmp == None:
+        if tmp == "":
             tmp = 36
-    diagnosis = Diagnosis.objects.create(doctor=request.user,patient=patient,temp=int(tmp),highTemp=bool(highTmp))
-    syndromes = request.GET.get('syndromes').split(',')
-    for synid in syndromes:
-        diagnosis.syndromes.add(Syndrome.objects.get(id=int(synid)))
+        else:
+            print(tmp)
+            tmp = int(tmp)
+    diagnosis = Diagnosis.objects.create(doctor=request.user,patient=patient,temp=tmp,highTemp=bool(highTmp))
+    symptoms = request.GET.get('symptoms').split(',')
+    for synid in symptoms:
+        if synid !="":
+            diagnosis.symptoms.add(Symptom.objects.get(id=int(synid)))
+    diagnosis.save()
     helper = RezonerHelper()
 
     rulesId = request.GET.get('rules')
@@ -214,15 +219,26 @@ def diseaseFinder(request):
 def diagnoze(request):
     patient = Patient.objects.get(id=int(request.POST.get('patient')))
     disease = Disease.objects.get(id=int(request.POST.get('disease')))
-    highTmp = request.POST.get("hadTemp")
-    tmp = request.POST.get("temp")
+    highTmp = bool(request.POST.get("hadTemp"))
+    tmp = 0
+    if highTmp==False:
+        tmp = 36
+    else:
+        tmp = request.GET.get("temp")
+        if tmp == "":
+            tmp = 36
+        else:
+            print(tmp)
+            tmp = int(tmp)
     diagnosis = Diagnosis.objects.create(doctor=request.user,patient=patient,temp=tmp,highTemp=highTmp,disease=disease)
-    syndromes = request.POST.get('syndromes').split(',')
-    for synid in syndromes:
-        diagnosis.syndromes.add(Syndrome.objects.get(id=int(synid)))
+    symptoms = request.POST.get('symptoms').split(',')
+    for synid in symptoms:
+        if synid != "":
+            diagnosis.symptoms.add(Symptom.objects.get(id=int(synid)))
     medicines = request.POST.get('medicines').split(',')
     for med in medicines:
-        diagnosis.medicine.add(Medicine.objects.get(id=int(med)))
+        if med != "":
+            diagnosis.medicine.add(Medicine.objects.get(id=int(med)))
     diagnosis.save()
     return redirect('/diagnostics/diagnose/')
 #Diagnosis page
@@ -230,12 +246,12 @@ def diagnoze(request):
 @permission_required('diagnostics.run_rules')
 def diagnosisPage(request):
     template = loader.get_template("diagnosisPage.html")
-    syndromes = Syndrome.objects.all()
+    symptoms = Symptom.objects.filter(technical=False)
     diseases = Disease.objects.all()
     medicines = Medicine.objects.all()
     patients = Patient.objects.all()
     rules = Rule.objects.filter(ruletype=Rule.diseaseRule)
-    return HttpResponse(template.render({'rules':rules,'medicines':medicines,'syndromes':syndromes,'diseases':diseases,'patients':patients,'user':request.user}))
+    return HttpResponse(template.render({'rules':rules,'medicines':medicines,'symptoms':symptoms,'diseases':diseases,'patients':patients,'user':request.user}))
 #Patient
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
@@ -317,11 +333,13 @@ def createIngredientPage(request):
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def newIngredient(request):
-    ingredient = Ingredient.objects.create()
-    name = request.POST.get('name')
-    ingredient.name = name
-    ingredient.save()
+    if len(Ingredient.objects.filter(name=request.POST.get('name')))==0:
+        ingredient = Ingredient.objects.create()
+        name = request.POST.get('name')
+        ingredient.name = name
+        ingredient.save()
     return redirect('/diagnostics/ingredients/')
+    
 #Medicine
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
@@ -346,43 +364,47 @@ def editMedicineP(request,id):
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def editMedicine(request,medicine_id):
-    medicine = Medicine.objects.get(id=medicine_id)
-    name = request.POST.get('name')
-    ingredients = request.POST.get('ingredients')
-    medType = request.POST.get('type')
-    medicine.name = name
-    medicine.medtype = medType
-    medicine.ingredient.clear()
-    for ing_id in ingredients.split(","):
-        if ing_id!="":
-            ing = Ingredient.objects.get(id=ing_id)
-            medicine.ingredient.add(ing)
-    medicine.save()
-    return redirect('/diagnostics/medicines/')
+    try:
+        medicine = Medicine.objects.get(id=medicine_id)
+        name = request.POST.get('name')
+        ingredients = request.POST.get('ingredients')
+        medType = request.POST.get('type')
+        medicine.name = name
+        medicine.medtype = medType
+        medicine.ingredient.clear()
+        for ing_id in ingredients.split(","):
+            if ing_id!="":
+                ing = Ingredient.objects.get(id=ing_id)
+                medicine.ingredient.add(ing)
+        medicine.save()
+        return redirect('/diagnostics/medicines/')
+    except IntegrityError:
+        return redirect('/diagnostics/medicines/')
     
 @csrf_exempt
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def newMedicine(request):
-    medicine = Medicine.objects.create()
-    name = request.POST.get('name')
-    ingredients = request.POST.get('ingredients')
-    medType = request.POST.get('type')
-    medicine.name = name
-    medicine.medtype = medType
-    for ing_id in ingredients.split(","):
-        if ing_id!="":
-            ing = Ingredient.objects.get(id=ing_id)
-            medicine.ingredient.add(ing)
-    medicine.save()
+    if len(Medicine.objects.filter(name=request.POST.get('name')))==0:
+        medicine = Medicine.objects.create()
+        name = request.POST.get('name')
+        ingredients = request.POST.get('ingredients')
+        medType = request.POST.get('type')
+        medicine.name = name
+        medicine.medtype = medType
+        for ing_id in ingredients.split(","):
+            if ing_id!="":
+                ing = Ingredient.objects.get(id=ing_id)
+                medicine.ingredient.add(ing)
+        medicine.save()
     return redirect('/diagnostics/medicines/')
-#Syndrome
+#Symptom
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def syndromesP(request):
     template = loader.get_template("syndromesPage.html")
-    syndromes = Syndrome.objects.all()
-    return HttpResponse(template.render({'syndromes':syndromes,'user':request.user}))
+    symptoms = Symptom.objects.all()
+    return HttpResponse(template.render({'symptoms':symptoms,'user':request.user}))
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def createSyndromePage(request):
@@ -393,11 +415,10 @@ def createSyndromePage(request):
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def newSyndrome(request):
-    syndrome = Syndrome.objects.create()
-    name = request.POST.get('name')
-    syndrome.name = name
-    syndrome.save()
-    return redirect('/diagnostics/syndromes/')
+    if len(Symptom.objects.filter(name=request.POST.get('name')))==0:
+        symptom = Symptom.objects.create(technical = bool(request.POST.get('technical')),name = request.POST.get('name'))
+        symptom.save()
+    return redirect('/diagnostics/symptoms/')
 #Disease
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
@@ -409,52 +430,54 @@ def diseasesP(request):
 @permission_required('diagnostics.manage_rules')
 def editDiseasesP(request,id):
     template = loader.get_template("createDiseasePage.html")
-    syndromes = Syndrome.objects.all()
+    symptoms = Symptom.objects.all()
     if id=="None":
-        return HttpResponse(template.render({'new':True,'user':request.user,'syndromes':syndromes}))
+        return HttpResponse(template.render({'new':True,'user':request.user,'symptoms':symptoms}))
     else:
         disease = Disease.objects.get(id=id)
-        return HttpResponse(template.render({'new':False,'disease':disease,'user':request.user,'syndromes':syndromes,'strongsynd':disease.strongsympt.all(),'regularsynd':disease.regularsympt.all()}))
+        return HttpResponse(template.render({'new':False,'disease':disease,'user':request.user,'symptoms':symptoms,'strongsynd':disease.strongsympt.all(),'regularsynd':disease.regularsympt.all()}))
 @csrf_exempt
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def editDisease(request,disease_id):
-    disease = Disease.objects.get(id=disease_id)
-    name = request.POST.get('name')
-    regSyn = request.POST.get('regSynd')
-    strSyn = request.POST.get('strSynd')
-    disease.name = name
-    disease.strongsympt.clear()
-    disease.regularsympt.clear()
-    for syn_id in regSyn.split(","):
-        if syn_id != "":
-            syndrome = Syndrome.objects.get(id=syn_id)
-            disease.regularsympt.add(syndrome)
-    for syn_id in strSyn.split(","):
-        if syn_id != "":
-            syndrome = Syndrome.objects.get(id=syn_id)
-            disease.strongsympt.add(syndrome)
-    disease.save()
-    return redirect('/diagnostics/diseases/')
+    try:
+        disease = Disease.objects.get(id=disease_id)
+        name = request.POST.get('name')
+        regSyn = request.POST.get('regSynd')
+        strSyn = request.POST.get('strSynd')
+        disease.name = name
+        disease.strongsympt.clear()
+        disease.regularsympt.clear()
+        for syn_id in regSyn.split(","):
+            if syn_id != "":
+                symptom = Symptom.objects.get(id=syn_id)
+                disease.regularsympt.add(symptom)
+        for syn_id in strSyn.split(","):
+            if syn_id != "":
+                symptom = Symptom.objects.get(id=syn_id)
+                disease.strongsympt.add(symptom)
+        disease.save()
+        return redirect('/diagnostics/diseases/')
+    except IntegrityError:
+        return redirect('/diagnostics/diseases/')
     
 @csrf_exempt
 @login_required(login_url="/diagnostics/loginPage")
 @permission_required('diagnostics.manage_rules')
 def newDisease(request):
-    disease = Disease.objects.create()
-    name = request.POST.get('name')
-    regSyn = request.POST.get('regSynd')
-    strSyn = request.POST.get('strSynd')
-    disease.name = name
-    for syn_id in regSyn.split(","):
-        if syn_id != "":
-            syndrome = Syndrome.objects.get(id=syn_id)
-            disease.regularsympt.add(syndrome)
-    for syn_id in strSyn.split(","):
-        if syn_id != "":
-            syndrome = Syndrome.objects.get(id=syn_id)
-            disease.strongsympt.add(syndrome)
-    disease.save()
+    if len(Disease.objects.filter(name = request.POST.get('name')))==0:
+        disease = Disease.objects.create(name = request.POST.get('name'))
+        regSyn = request.POST.get('regSynd')
+        strSyn = request.POST.get('strSynd')
+        for syn_id in regSyn.split(","):
+            if syn_id != "":
+                symptom = Symptom.objects.get(id=syn_id)
+                disease.regularsympt.add(symptom)
+        for syn_id in strSyn.split(","):
+            if syn_id != "":
+                symptom = Symptom.objects.get(id=syn_id)
+                disease.strongsympt.add(symptom)
+        disease.save()
     return redirect('/diagnostics/diseases/')
 #RuleExtentions
 @login_required(login_url="/diagnostics/loginPage")
@@ -610,7 +633,27 @@ def logoutF(request):#TOTALY DONE
 def loginP(request):#TOTALY DONE
     template = loader.get_template("static/login.html")
     return HttpResponse(template.render())
-
+#added
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.run_rules')
+def symPickPage(request):
+    template = loader.get_template("diseaseSyndromePick.html")
+    symptoms = Symptom.objects.all()
+    return HttpResponse(template.render({'user':request.user,'symptoms':symptoms}))
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.manage_rules')
+def rulesPickPage(request):
+    template = loader.get_template("rulesPickPage.html")
+    return HttpResponse(template.render({'dict':list(Rule.Type_CHOICES),'user':request.user}))
+@login_required(login_url="/diagnostics/loginPage/")
+@permission_required('diagnostics.manage_rules')
+def rulesAllPage(request):
+    ruletype = request.GET.get("type")
+    rules = Rule.objects.filter(ruletype=int(ruletype)).order_by('-priority')
+    result = []
+    for rule in rules:
+        result.append(json.loads(rule.content))
+    return HttpResponse(json.dumps(result), content_type="application/json")
 
 #Filters:
 @register.filter

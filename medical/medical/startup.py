@@ -11,24 +11,12 @@ def startup():
     groupD, created = Group.objects.get_or_create(name='doctor')
     if (created):
         groupD.permissions.clear()
-        permission = Permission.objects.get(codename='change_diagnosis')
-        groupD.permissions.add(permission)
         permission = Permission.objects.get(codename='run_rules')
         groupD.permissions.add(permission)
     groupE, created = Group.objects.get_or_create(name='expert')
     if (created):
         groupE.permissions.clear()
-        permission = Permission.objects.get(codename='change_disease')
-        groupE.permissions.add(permission)
-        permission = Permission.objects.get(codename='change_syndrome')
-        groupE.permissions.add(permission)
-        permission = Permission.objects.get(codename='change_medicine')
-        groupE.permissions.add(permission)
-        permission = Permission.objects.get(codename='change_ingredient')
-        groupE.permissions.add(permission)
         permission = Permission.objects.get(codename='manage_rules')
-        groupE.permissions.add(permission)
-        permission = Permission.objects.get(codename='change_patient')
         groupE.permissions.add(permission)
     #adding users
     try:

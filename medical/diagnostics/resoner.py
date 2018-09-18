@@ -3,7 +3,7 @@ from business_rules.actions import BaseActions,rule_action
 from business_rules.fields import FIELD_SELECT_MULTIPLE,FIELD_NUMERIC,FIELD_TEXT
 from django.core import serializers
 
-from .models import Medicine,Ingredient,Syndrome,Disease
+from .models import Medicine,Ingredient,Symptom,Disease
 
 from datetime import datetime, timedelta
 
@@ -26,10 +26,10 @@ class AlergyVariables(BaseVariables):
         return self.medicine.name
     @select_multiple_rule_variable(label="Medicines that patient is allergic to ", options=getNamesList(Medicine.objects.all()))
     def getAlergyMedicines(self):
-        return getNamesList(self.patient.alergymed)
+        return getNamesList(self.patient.alergymed.all())
     @select_multiple_rule_variable(label="Ingredients that patient is allergic to",options=getNamesList(Ingredient.objects.all()))
     def getAlergyIngredients(self):
-        return getNamesList(self.patient.alergying)
+        return getNamesList(self.patient.alergying.all())
     @string_rule_variable(label="Prescribed medicine type")
     def getMedicineType(self):
         return self.medicine.medtype
@@ -64,39 +64,39 @@ class DiseasesVariables(BaseVariables):
     def __init__(self,diagnosis,disease):
         self.diagnosis = diagnosis
         self.disease = disease
-    @select_multiple_rule_variable(label="Inputed syndromes",options=getNamesList(Syndrome.objects.all()))
+    @select_multiple_rule_variable(label="Inputed symptoms",options=getNamesList(Symptom.objects.all()))
     def getInputSyndromes(self):
-        return getNamesList(self.diagnosis.syndroms)
-    @select_multiple_rule_variable(label="Specific disease syndromes",options=getNamesList(Syndrome.objects.all()))
+        return getNamesList(self.diagnosis.symptoms)
+    @select_multiple_rule_variable(label="Specific disease symptoms",options=getNamesList(Symptom.objects.all()))
     def getSDiseaseSyndromes(self):
         return getNamesList(self.disease.strongsympt.all())
-    @select_multiple_rule_variable(label="General disease syndromes",options=getNamesList(Syndrome.objects.all()))
+    @select_multiple_rule_variable(label="General disease symptoms",options=getNamesList(Symptom.objects.all()))
     def getRDiseaseSyndromes(self):
         return getNamesList(self.disease.regularsympt.all())
     @string_rule_variable(label = "Disease name")
     def getDiseaseName(self):
         return self.disease.name
-    @numeric_rule_variable(label = "General disease syndromes count")
+    @numeric_rule_variable(label = "General disease symptoms count")
     def getRegSynCount(self):
         return len(self.disease.regularsympt.all())
-    @numeric_rule_variable(label = "Specific disease syndromes count")
+    @numeric_rule_variable(label = "Specific disease symptoms count")
     def getSpecSynCount(self):
         return len(self.disease.strongsympt.all())
-    @numeric_rule_variable(label = "Inputed syndromes count")
+    @numeric_rule_variable(label = "Inputed symptoms count")
     def getSynCount(self):
-        return len(self.diagnosis.syndromes)
-    @numeric_rule_variable(label="Matched specific syndromes count")
+        return len(self.diagnosis.symptoms)
+    @numeric_rule_variable(label="Matched specific symptoms count")
     def getMssCount(self):
         count=0
-        for syndrome in self.disease.strongsympt.all():
-            if syndrome in self.diagnosis.syndromes:
+        for symptom in self.disease.strongsympt.all():
+            if symptom in self.diagnosis.symptoms:
                 count = count + 1
         return count
-    @numeric_rule_variable(label="Matched general syndromes count")
+    @numeric_rule_variable(label="Matched general symptoms count")
     def getMgsCount(self):
         count=0
-        for syndrome in self.disease.regularsympt.all():
-            if syndrome in self.diagnosis.syndromes:
+        for symptom in self.disease.regularsympt.all():
+            if symptom in self.diagnosis.symptoms:
                 count = count + 1
         return count
 
@@ -113,30 +113,30 @@ class DiseasesActions(BaseActions):
 
 #for finding disease syndroms rules
 class SyndromeVariables(BaseVariables):
-    def __init__(self,disease,syndrome):
+    def __init__(self,disease,symptom):
         self.disease = disease
-        self.syndrome = syndrome
+        self.symptom = symptom
     @select_multiple_rule_variable(label="Inputed disease name", options=getNamesList(Disease.objects.all()))
     def getInputDiseaseName(self):
         return self.disease.name
-    @select_multiple_rule_variable(label="Specific disease syndromes", options=getNamesList(Syndrome.objects.all()))
+    @select_multiple_rule_variable(label="Specific disease symptoms", options=getNamesList(Symptom.objects.all()))
     def getSDiseaseSyndromes(self):
         return getNamesList(self.disease.strongsympt.all())
-    @select_multiple_rule_variable(label="General disease syndromes", options=getNamesList(Syndrome.objects.all()))
+    @select_multiple_rule_variable(label="General disease symptoms", options=getNamesList(Symptom.objects.all()))
     def getRDiseaseSyndromes(self):
         return getNamesList(self.disease.regularsympt.all())
-    @string_rule_variable(label = "Syndrome name")
+    @string_rule_variable(label = "Symptom name")
     def getSyndName(self):
-        return self.syndrome.name
-    @boolean_rule_variable(label = "Syndrome is contained in list of specific disease syndromes")
+        return self.symptom.name
+    @boolean_rule_variable(label = "Symptom is contained in list of specific disease symptoms")
     def getRegSynCount(self):
-        if self.syndrome in self.disease.strongsympt.all():
+        if self.symptom in self.disease.strongsympt.all():
             return True
         else:
             return False
-    @boolean_rule_variable(label = "Syndrome is contained in list of general disease syndromes")
+    @boolean_rule_variable(label = "Symptom is contained in list of general disease symptoms")
     def getStrSynCount(self):
-        if self.syndrome in self.disease.regularsympt.all():
+        if self.symptom in self.disease.regularsympt.all():
             return True
         else:
             return False
@@ -145,11 +145,11 @@ class SyndromeActions(BaseActions):
     def __init__(self):
         self.show = False
         self.top = False
-    @rule_action(label='Add syndrome to show list')
+    @rule_action(label='Add symptom to show list')
     def show1Disease(self):
         self.show = True
         self.top = False
-    @rule_action(label='Add syndrome to top of show list')
+    @rule_action(label='Add symptom to top of show list')
     def show2Disease(self):
         self.show = True
         self.top = True
@@ -160,11 +160,11 @@ class DiseaseVariables(BaseVariables):
         self.diagnosis = diagnosis
         self.disease = disease
         self.helper = helper
-    @select_multiple_rule_variable(label="List of inputed syndrome names",options=getNamesList(Syndrome.objects.all()))
+    @select_multiple_rule_variable(label="List of inputed symptom names",options=getNamesList(Symptom.objects.filter(technical=False)))
     def getSyndromesNames(self):
         result = []
-        for syndrome in self.diagnosis.syndromes.all():
-            result.append(syndrome.name)
+        for symptom in self.diagnosis.symptoms.all():
+            result.append(symptom.name)
         return result
     @numeric_rule_variable(label="Temperature in *C")
     def getTemperature(self):
@@ -177,16 +177,16 @@ class DiseaseVariables(BaseVariables):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
-            if diagnostics.disease.name == diseaseName:
+            if diagnostics.disease is not None and diagnostics.disease.name == diseaseName:
                 results.append(diagnostics.disease.id)
         return len(results)
     #OVO PRAVILO
-    def hadSyndrome(self,syndromeName,days):
+    def hadSyndrome(self,symptomName,days):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
-            for syndrome in diagnostics.syndromes:
-                if syndrome.name == syndromeName:
+            for symptom in diagnostics.symptoms:
+                if symptom.name == symptomName:
                     results.append(diagnostics.id)
                     break
         return len(results)
@@ -211,24 +211,24 @@ class DiseaseVariables(BaseVariables):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
-            for medicine in diagnostics.medicine:
-                if medicine.medtype == typeOfMedicine:
+            for medicine in diagnostics.medicine.all():
+                if medicine is not None and medicine.medtype == typeOfMedicine:
                     results.append(diagnostics.id)
                     break
         return len(results)
-    @numeric_rule_variable(label="Number of syndromes connected to current disease")
+    @numeric_rule_variable(label="Number of symptoms connected to current disease")
     def getSyndCount(self):
         res = 0
-        for syndrome in self.diagnosis.syndromes.all():
-            for dsynd in self.disease.strongsympt.all():
-                if syndrome.name == dsynd.name:
+        for symptom in self.diagnosis.symptoms.all():
+            for dsynd in self.disease.strongsympt.filter(technical=False):
+                if symptom.name == dsynd.name:
                     res = res + 1
-        for syndrome in self.diagnosis.syndromes.all():
-            for dsynd in self.disease.regularsympt.all():
-                if syndrome.name == dsynd.name:
+        for symptom in self.diagnosis.symptoms.all():
+            for dsynd in self.disease.regularsympt.filter(technical=False):
+                if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of syndromes connected to most likely diagnosed disease")
+    @numeric_rule_variable(label="Number of symptoms connected to most likely diagnosed disease")
     def getBestSyndCount(self):
         return self.helper.bestRegSyndCount + self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Probability connected to diagnosing current disease")
@@ -237,31 +237,31 @@ class DiseaseVariables(BaseVariables):
     @numeric_rule_variable(label="Probability connected to diagnosing most likely diagnosed disease")
     def getBestPercent(self):
         return self.helper.bestPercent
-    @numeric_rule_variable(label="Number of strong syndromes connected to current disease")
+    @numeric_rule_variable(label="Number of strong symptoms connected to current disease")
     def getSpecSyndCount(self):
         res = 0
-        for syndrome in self.diagnosis.syndromes.all():
-            for dsynd in self.disease.strongsympt.all():
-                if syndrome.name == dsynd.name:
+        for symptom in self.diagnosis.symptoms.all():
+            for dsynd in self.disease.strongsympt.filter(technical=False):
+                if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of strong syndromes connected to most likely diagnosed disease")
+    @numeric_rule_variable(label="Number of strong symptoms connected to most likely diagnosed disease")
     def getBestSpecSyndCount(self):
         return self.helper.bestStrSyndCount
-    @numeric_rule_variable(label="Number of regular syndromes connected to current disease")
+    @numeric_rule_variable(label="Number of regular symptoms connected to current disease")
     def getRegSyndCount(self):
         res = 0
-        for syndrome in self.diagnosis.syndromes.all():
-            for dsynd in self.disease.regularsympt.all():
-                if syndrome.name == dsynd.name:
+        for symptom in self.diagnosis.symptoms.all():
+            for dsynd in self.disease.regularsympt.filter(technical=False):
+                if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of regular syndromes connected to most likely diagnosed disease")
+    @numeric_rule_variable(label="Number of regular symptoms connected to most likely diagnosed disease")
     def getBestRegSyndCount(self):
         return self.helper.bestRegSyndCount
     @numeric_rule_variable(label="Name of most likely diagnosed disease")
     def getDiseaseName(self):
-        return self.helper.diseaseName
+        return int(self.helper.diseaseName)
 
 
 class DiseaseActions(BaseActions):
@@ -278,18 +278,21 @@ class DiseaseActions(BaseActions):
     def setBestSsyn(self):
         if self.variables.getPercent()>self.helper.bestPercent:
             self.setDiseaseName()
-    @rule_action(label="Set current disease as most likely diagnosed disease if strong syndrome count is higher than current best")
+    @rule_action(label="Set current disease as most likely diagnosed disease if strong symptom count is higher than current best")
     def setBestRsyn(self):
         if self.variables.getSpecSyndCount()>self.helper.bestStrSyndCount:
             self.setDiseaseName()
-    @rule_action(label="Set current disease as most likely diagnosed disease if regular syndrome count is higher than current best")
+    @rule_action(label="Set current disease as most likely diagnosed disease if regular symptom count is higher than current best")
     def setBestPerc(self):
         if self.variables.getRegSyndCount()>self.helper.bestRegSyndCount:
             self.setDiseaseName()
     @rule_action(label="Set current disease as most likely diagnosed disease if percentage(calculated after addition of completed complex parameters) of likeliness is higher than current best",params={'completed':FIELD_NUMERIC})
     def setBestcomplex(self,completed):
         if ((self.variables.getSyndCount()+completed)/((len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all()))*100))>self.helper.bestPercent:
-            self.setDiseaseName()
+            self.helper.diseaseName = self.variables.disease.name
+            self.helper.bestStrSyndCount = self.variables.getSpecSyndCount()
+            self.helper.bestRegSyndCount = self.variables.getRegSyndCount()
+            self.helper.bestPercent = ((self.variables.getSyndCount()+completed)/((len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all()))*100))
 
 #for finding patient data rules
 class PatientVariables(BaseVariables):
@@ -301,10 +304,11 @@ class PatientVariables(BaseVariables):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
-            if diagnostics.disease.name in nameRepeatDict.keys():
-                nameRepeatDict[diagnostics.disease.name] = nameRepeatDict[diagnostics.disease.name]+1
-            else:
-                nameRepeatDict[diagnostics.disease.name] = 1
+            if diagnostics.disease is not None:
+                if diagnostics.disease.name in nameRepeatDict.keys():
+                    nameRepeatDict[diagnostics.disease.name] = nameRepeatDict[diagnostics.disease.name]+1
+                else:
+                    nameRepeatDict[diagnostics.disease.name] = 1
         sortedNames = sorted(nameRepeatDict,key=nameRepeatDict.__getitem__,reverse=True)
         for name in sortedNames:
             if nameRepeatDict[name] >= repeted:
@@ -356,7 +360,7 @@ class PatientVariables(BaseVariables):
                 if medicine.medtype == medicineType:
                     tmp = False
             if tmp:
-                if diagnostics.disease.id in results:
+                if diagnostics.disease is None or diagnostics.disease.id in results:
                     pass
                 else:
                     results.append(diagnostics.disease.id)

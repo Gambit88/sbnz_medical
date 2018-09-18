@@ -92,9 +92,15 @@
           <li class="">
             <a class="" href="{% url 'diagSyndPickPage' %}">
               <i class="icon_book_alt"></i>
-              <span>Disease syndromes</span>
+              <span>Disease symptoms</span>
             </a>
           </li>
+          <li class="">
+            <a class="" href="{% url 'diseasesSymptomList' %}">
+                <i class="icon_book_alt"></i>
+                <span>Diseases with symptoms</span>
+            </a>
+        </li>
           <li class="">
             <a class="" href="{% url 'reportsPage' %}">
               <i class="icon_documents_alt"></i>
@@ -135,7 +141,7 @@
                     <th>
                       <i class="icon_document_alt"></i> Disease name</th>
                     <th>
-                      <i class="icon_cogs"></i> Disease syndromes</th>
+                      <i class="icon_cogs"></i> Disease symptoms</th>
                   </tr>
                   {% for disease in diseases %}
                   <tr>

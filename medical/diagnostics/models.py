@@ -3,25 +3,26 @@ from django.contrib.auth.models import User
 
 # Create your models here
 
-class Syndrome(models.Model):
-    name = models.CharField(max_length=150,verbose_name="Name")
+class Symptom(models.Model):
+    name = models.CharField(max_length=150,verbose_name="Name",unique=True)
+    technical = models.BooleanField()
     def __str__(self):
         return self.name
 
 class Disease(models.Model):
-    name = models.CharField(max_length=150,verbose_name="Name")
-    strongsympt = models.ManyToManyField(Syndrome,related_name="strong_syndrome",verbose_name="Specific syndromes",blank=True)
-    regularsympt = models.ManyToManyField(Syndrome,related_name="regular_syndrome",verbose_name="General syndromes")
+    name = models.CharField(max_length=150,verbose_name="Name",unique=True)
+    strongsympt = models.ManyToManyField(Symptom,related_name="strong_symptoms",verbose_name="Specific symptoms",blank=True)
+    regularsympt = models.ManyToManyField(Symptom,related_name="regular_symptoms",verbose_name="General symptoms")
     def __str__(self):
         return self.name
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length= 150,verbose_name="Name")
+    name = models.CharField(max_length= 150,verbose_name="Name",unique=True)
     def __str__(self):
         return self.name
 
 class Medicine(models.Model):
-    name = models.CharField(max_length= 150,verbose_name="Name")
+    name = models.CharField(max_length= 150,verbose_name="Name",unique=True)
     ingredient = models.ManyToManyField(Ingredient,verbose_name="Ingredients")
     analgesic='0'
     antibiotic='1'
@@ -36,7 +37,7 @@ class Medicine(models.Model):
         return self.name
 
 class Rule(models.Model):
-    title = models.CharField(max_length= 500,verbose_name="Rule title")
+    title = models.CharField(max_length= 500,verbose_name="Rule title",unique=True)
     content = models.CharField(max_length = 10000,verbose_name="Rule")
     diseaseRule='0'
     alergyRule='1'
@@ -73,14 +74,12 @@ class MonitoringInfo(models.Model):
     liquidlevel = models.SmallIntegerField(verbose_name="Amount of urine produced")
     patient = models.ForeignKey(Patient,on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return str(self.time)
 
 class Diagnosis(models.Model):
     medicine = models.ManyToManyField(Medicine,verbose_name="Prescribed medicines")
     highTemp = models.BooleanField(verbose_name="User had high temperature")
     temp = models.SmallIntegerField(verbose_name="Temperature", blank=True)
-    syndromes = models.ManyToManyField(Syndrome,verbose_name="Patient syndromes")
+    symptoms = models.ManyToManyField(Symptom,verbose_name="Patient symptoms")
     disease = models.ForeignKey(Disease, on_delete=models.CASCADE,verbose_name="Diagnosed disease",null=True)
     doctor = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Doctor responsable for diagnosis")
     patient = models.ForeignKey(Patient,on_delete=models.CASCADE, verbose_name="Patient")
@@ -123,7 +122,7 @@ class FileRule(models.Model):
 		(ruleOWU, '(Monitoring ruleset) Oxygen level went up in last (n) minutes. (Params: time_in_minutes)'),
 		(ruleOWD, '(Monitoring ruleset) Oxygen level went down in last (n) minutes. (Params: time_in_minutes)'),
 		(ruleHDC, '(Disease detection ruleset) Patient had (x) diagnosed multiple times in last (n) days. (Params: disease_name,number_of_days)'),
-		(ruleHSC, '(Disease detection ruleset) Patient had (x) syndrome multiple times in last (n) days. (Params: syndrome_name,number_of_days)'),
+		(ruleHSC, '(Disease detection ruleset) Patient had (x) symptom multiple times in last (n) days. (Params: syndrome_name,number_of_days)'),
 		(ruleHTC, '(Disease detection ruleset) Patient had high temperature multiple times in last (n) days. (Params: number_of_days)'),
 		(ruleHTAC, '(Disease detection ruleset) Patient had temperature above (x) multiple times in last (n) days. (Params: temperature,number_of_days)'),
 		(ruleHMTC, '(Disease detection ruleset) Patient had medicine that is (x) prescribed multiple times in last (n) days. (Params: medicine_type,number_of_days)'),
@@ -143,13 +142,12 @@ class FileRule(models.Model):
     class Meta:
         unique_together = ('extendedRule','params')
 
-class DiagnosedSyndromes():
+class DiagnosedSymptomes():
     def __init__(self):
-        self.syndromes = []
+        self.symptoms = []
 
 class Alarm(models.Model):
     patient = models.CharField(max_length=500)
     solved = models.BooleanField()
     patientId = models.IntegerField()
     alarm = models.CharField(max_length=500)
-    

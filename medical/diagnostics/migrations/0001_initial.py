@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('params', models.CharField(max_length=1000)),
-                ('extendedRule', models.CharField(choices=[('mv_tll', '(Monitoring ruleset) Amount of urin relieved in last (n) hours. (Params: time_in_hours)'), ('mv_htr', '(Monitoring ruleset) Number of hearthbeats in last (n) secounds. (Params: time_in_secounds)'), ('mv_dih', '(Monitoring ruleset) (x) disease is in patients records history. (Params: disease_name)'), ('mv_owu', '(Monitoring ruleset) Oxygen level went up in last (n) minutes. (Params: time_in_minutes)'), ('mv_owd', '(Monitoring ruleset) Oxygen level went down in last (n) minutes. (Params: time_in_minutes)'), ('dv_hdc', '(Disease detection ruleset) Patient had (x) diagnosed multiple times in last (n) days. (Params: disease_name,number_of_days)'), ('dv_hsc', '(Disease detection ruleset) Patient had (x) syndrome multiple times in last (n) days. (Params: syndrome_name,number_of_days)'), ('dv_htc', '(Disease detection ruleset) Patient had high temperature multiple times in last (n) days. (Params: number_of_days)'), ('dv_tac', '(Disease detection ruleset) Patient had temperature above (x) multiple times in last (n) days. (Params: temperature,number_of_days)'), ('dv_hmc', '(Disease detection ruleset) Patient had medicine that is (x) prescribed multiple times in last (n) days. (Params: medicine_type,number_of_days)'), ('pv_rdn', '(Patient data finding ruleset) Names of diseases that had repeated (x) times in last (n) days. (Params: number_of_repeats,number_of_days)'), ('pv_cmt', '(Patient data finding ruleset) Number of medicines of (x) type prescribed in last (n) days. (Params: medicine_type,number_of_days)'), ('pv_dpc', '(Patient data finding ruleset) Number of different doctors prescribing medicine of (x) type in last (n) days (Params: medicine_type,number_of_days)'), ('pv_dmc', '(Patient data finding ruleset) Number of diseases that had medicine of (x) type prescribed in last (n) days (Params: medicine_type,number_of_days)')], max_length=6, verbose_name='Extended rule')),
+                ('extendedRule', models.CharField(choices=[('mv_tll', '(Monitoring ruleset) Amount of urin relieved in last (n) hours. (Params: time_in_hours)'), ('mv_htr', '(Monitoring ruleset) Number of hearthbeats in last (n) secounds. (Params: time_in_secounds)'), ('mv_dih', '(Monitoring ruleset) (x) disease is in patients records history. (Params: disease_name)'), ('mv_owu', '(Monitoring ruleset) Oxygen level went up in last (n) minutes. (Params: time_in_minutes)'), ('mv_owd', '(Monitoring ruleset) Oxygen level went down in last (n) minutes. (Params: time_in_minutes)'), ('dv_hdc', '(Disease detection ruleset) Patient had (x) diagnosed multiple times in last (n) days. (Params: disease_name,number_of_days)'), ('dv_hsc', '(Disease detection ruleset) Patient had (x) symptom multiple times in last (n) days. (Params: syndrome_name,number_of_days)'), ('dv_htc', '(Disease detection ruleset) Patient had high temperature multiple times in last (n) days. (Params: number_of_days)'), ('dv_tac', '(Disease detection ruleset) Patient had temperature above (x) multiple times in last (n) days. (Params: temperature,number_of_days)'), ('dv_hmc', '(Disease detection ruleset) Patient had medicine that is (x) prescribed multiple times in last (n) days. (Params: medicine_type,number_of_days)'), ('pv_rdn', '(Patient data finding ruleset) Names of diseases that had repeated (x) times in last (n) days. (Params: number_of_repeats,number_of_days)'), ('pv_cmt', '(Patient data finding ruleset) Number of medicines of (x) type prescribed in last (n) days. (Params: medicine_type,number_of_days)'), ('pv_dpc', '(Patient data finding ruleset) Number of different doctors prescribing medicine of (x) type in last (n) days (Params: medicine_type,number_of_days)'), ('pv_dmc', '(Patient data finding ruleset) Number of diseases that had medicine of (x) type prescribed in last (n) days (Params: medicine_type,number_of_days)')], max_length=6, verbose_name='Extended rule')),
                 ('extendsRuleset', models.CharField(choices=[('monv', 'Extends monitoring ruleset'), ('patv', 'Extends patient data finding ruleset'), ('disv', 'Extends disease detection ruleset')], max_length=4, verbose_name='Extended ruleset')),
             ],
         ),
@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Syndrome',
+            name='Symptom',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=150, verbose_name='Name')),
@@ -116,12 +116,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disease',
             name='regularsympt',
-            field=models.ManyToManyField(related_name='regular_syndrome', to='diagnostics.Syndrome', verbose_name='General syndromes'),
+            field=models.ManyToManyField(related_name='regular_syndrome', to='diagnostics.Symptom', verbose_name='General symptoms'),
         ),
         migrations.AddField(
             model_name='disease',
             name='strongsympt',
-            field=models.ManyToManyField(blank=True, related_name='strong_syndrome', to='diagnostics.Syndrome', verbose_name='Specific syndromes'),
+            field=models.ManyToManyField(blank=True, related_name='strong_syndrome', to='diagnostics.Symptom', verbose_name='Specific symptoms'),
         ),
         migrations.AddField(
             model_name='diagnosis',
@@ -145,7 +145,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='diagnosis',
-            name='syndromes',
-            field=models.ManyToManyField(to='diagnostics.Syndrome', verbose_name='Patient syndromes'),
+            name='symptoms',
+            field=models.ManyToManyField(to='diagnostics.Symptom', verbose_name='Patient symptoms'),
         ),
     ]

@@ -104,7 +104,7 @@
                     <li class="">
                         <a class="" href="{% url 'syndromesPage' %}">
                             <i class="icon_documents_alt"></i>
-                            <span>Syndromes</span>
+                            <span>Symptoms</span>
                         </a>
                     </li>
                     <li class="">
@@ -123,6 +123,12 @@
                         <a class="" href="{% url 'rulesPage' %}">
                             <i class="icon_book_alt"></i>
                             <span>Rules</span>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a class="" href="{% url 'rulesListPickPage' %}">
+                            <i class="icon_book_alt"></i>
+                            <span>All Rules</span>
                         </a>
                     </li>
                 </ul>
@@ -157,14 +163,14 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="control-label col-lg-1" for="inputSuccess">Strong syndromes</label>
+                            <label class="control-label col-lg-1" for="inputSuccess">Strong symptoms</label>
                             <div class="col-lg-11">
                                 <select  class="form-control" id="sSelect" multiple="multiple">
-                                    {%for syndrome in syndromes%} {%if new%}
-                                    <option value="{{syndrome.id}}">{{syndrome.name}}</option>{%else%} {%if syndrome in strongsynd%}
-                                    <option value="{{syndrome.id}}" selected="True">{{syndrome.name}}</option>
+                                    {%for symptom in symptoms%} {%if new%}
+                                    <option value="{{symptom.id}}">{{symptom.name}}</option>{%else%} {%if symptom in strongsynd%}
+                                    <option value="{{symptom.id}}" selected="True">{{symptom.name}}</option>
                                     {%else%}
-                                    <option value="{{syndrome.id}}">{{syndrome.name}}</option>
+                                    <option value="{{symptom.id}}">{{symptom.name}}</option>
                                     {%endif%}{%endif%} {%endfor%}
                                 </select>
                                 <input type="hidden" name="strSynd" id="s_s">
@@ -172,13 +178,13 @@
                         </div>
 
                         <div class="form-group  ">
-                            <label class="control-label col-lg-1" for="inputSuccess">Regular syndromes</label>
+                            <label class="control-label col-lg-1" for="inputSuccess">Regular symptoms</label>
                             <div class="col-lg-11">
                                 <select multiple="multiple" class="form-control" id="rSelect">
-                                    {%for syndrome in syndromes%}{%if mew%}
-                                    <option value="{{syndrome.id}}">{{syndrome.name}}</option>{%else%}{%if syndrome in regularsynd%}
-                                    <option value="{{syndrome.id}}" selected="True">{{syndrome.name}}</option>{%else%}
-                                    <option value="{{syndrome.id}}">{{syndrome.name}}</option>{%endif%}{%endif%} {%endfor%}
+                                    {%for symptom in symptoms%}{%if mew%}
+                                    <option value="{{symptom.id}}">{{symptom.name}}</option>{%else%}{%if symptom in regularsynd%}
+                                    <option value="{{symptom.id}}" selected="True">{{symptom.name}}</option>{%else%}
+                                    <option value="{{symptom.id}}">{{symptom.name}}</option>{%endif%}{%endif%} {%endfor%}
                                 </select>
                                 <input type="hidden" name="regSynd" id="r_s">
                             </div>

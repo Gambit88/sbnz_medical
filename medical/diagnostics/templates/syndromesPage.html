@@ -104,7 +104,7 @@
           <li class="">
             <a class="" href="{% url 'syndromesPage' %}">
               <i class="icon_documents_alt"></i>
-              <span>Syndromes</span>
+              <span>Symptoms</span>
             </a>
           </li>
           <li class="">
@@ -125,6 +125,12 @@
               <span>Rules</span>
             </a>
           </li>
+          <li class="">
+            <a class="" href="{% url 'rulesListPickPage' %}">
+                <i class="icon_book_alt"></i>
+                <span>All Rules</span>
+            </a>
+        </li>
         </ul>
         <!-- sidebar menu end-->
       </div>
@@ -136,9 +142,9 @@
         <div class="row">
           <div class="col-lg-12">
             <h3 class="page-header">
-              <i class="icon_documents_alt"></i> Syndromes
+              <i class="icon_documents_alt"></i> Symptoms
               <div class="text-right">
-                <a class="btn btn-success" href="{% url 'createSyndromePage' %}">New syndrome</a>
+                <a class="btn btn-success" href="{% url 'createSyndromePage' %}">New symptom</a>
               </div>
             </h3>
           </div>
@@ -154,12 +160,12 @@
                     <th>
                        #</th>
                     <th>
-                      <i class="icon_document_alt"></i> Syndrome </th>
+                      <i class="icon_document_alt"></i> Symptom </th>
                   </tr>
-                  {% for syndrome in syndromes %}
+                  {% for symptom in symptoms %}
                   <tr>
-                    <td>{{syndrome.id}}</td>
-                    <td>{{syndrome.name}}</td>
+                    <td>{{symptom.id}}</td>
+                    <td>{{symptom.name}}</td>
                   </tr>
                   {% endfor %}
 
