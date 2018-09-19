@@ -91,6 +91,8 @@ class DiseasesVariables(BaseVariables):
         for symptom in self.disease.strongsympt.all():
             if symptom in self.diagnosis.symptoms:
                 count = count + 1
+
+        #print("MSS:"+str(count))
         return count
     @numeric_rule_variable(label="Matched general symptoms count")
     def getMgsCount(self):
@@ -98,6 +100,8 @@ class DiseasesVariables(BaseVariables):
         for symptom in self.disease.regularsympt.all():
             if symptom in self.diagnosis.symptoms:
                 count = count + 1
+
+        #print("GSS:"+str(count))
         return count
 
 class DiseasesActions(BaseActions):
@@ -109,7 +113,7 @@ class DiseasesActions(BaseActions):
         self.show = True
     @rule_action(label="Add sorting weight to disease",params= {"amount":FIELD_NUMERIC})
     def weight(self,amount):
-        self.correctSyndromes = self.correctSyndromes + amount
+        self.correctSyndromes = int(amount)
 
 #for finding disease syndroms rules
 class SyndromeVariables(BaseVariables):
@@ -169,6 +173,9 @@ class DiseaseVariables(BaseVariables):
     @numeric_rule_variable(label="Temperature in *C")
     def getTemperature(self):
         return self.diagnosis.temp
+    @select_multiple_rule_variable(label="Name of current disease",options=getNamesList(Disease.objects.all()))
+    def getDiseaseName(self):
+        return self.disease.name
     @boolean_rule_variable(label="Patient has temperature")
     def hasTemperature(self):
         return self.diagnosis.highTemp
@@ -260,7 +267,7 @@ class DiseaseVariables(BaseVariables):
     def getBestRegSyndCount(self):
         return self.helper.bestRegSyndCount
     @numeric_rule_variable(label="Name of most likely diagnosed disease")
-    def getDiseaseName(self):
+    def getBestDiseaseName(self):
         return int(self.helper.diseaseName)
 
 
@@ -322,7 +329,7 @@ class PatientVariables(BaseVariables):
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
             for medicine in diagnostics.medicine.all():
-                if medicine.medtype == medicineType:
+                if medicine.medtype == Medicine.Type_DICT[medicineType]:
                     results = results + 1 
                     break
         return results
@@ -332,7 +339,7 @@ class PatientVariables(BaseVariables):
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
             for medicine in diagnostics.medicine.all():
-                if medicine.medtype == medicineType:
+                if medicine.medtype == Medicine.Type_DICT[medicineType]:
                     if diagnostics.doctor.id in results:
                         pass
                     else:
@@ -344,7 +351,7 @@ class PatientVariables(BaseVariables):
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
             for medicine in diagnostics.medicine.all():
-                if medicine.medtype == medicineType:
+                if medicine.medtype == Medicine.Type_DICT[medicineType]:
                     if diagnostics.disease.id in results:
                         pass
                     else:
@@ -357,7 +364,7 @@ class PatientVariables(BaseVariables):
         for diagnostics in self.patient.diagnosis_set.filter(time__gt=timeFrame):
             tmp = True
             for medicine in diagnostics.medicine.all():
-                if medicine.medtype == medicineType:
+                if medicine.medtype == Medicine.Type_DICT[medicineType]:
                     tmp = False
             if tmp:
                 if diagnostics.disease is None or diagnostics.disease.id in results:

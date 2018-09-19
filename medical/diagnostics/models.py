@@ -27,6 +27,7 @@ class Medicine(models.Model):
     analgesic='0'
     antibiotic='1'
     other='2'
+    Type_DICT = {'Analgesic':analgesic,'Antibiotic':antibiotic,'Other':other}
     Type_CHOICES = (
 		(analgesic, 'Analgesic'),
 		(antibiotic, 'Antibiotic'),

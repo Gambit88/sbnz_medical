@@ -48,26 +48,34 @@ def info(request,patient_id):
     my_file = Path("./monitoring/custom_variables_m.py")
     if my_file.is_file():
         module = import_module('.custom_variables_m',package="monitoring")
-        monitoringActions = MonitoringActions()
-        run_all(rule_list=engRules,
-            defined_variables=module.CustomMonitoringVariables(monitoring,patient),
-            defined_actions=monitoringActions,
-            stop_on_first_trigger=False
-        )
-        if monitoringActions.alarm:
-            alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
-            alarm.save()
+        for rule in engRules:
+            l = []
+            l.append(rule)
+            monitoringActions = MonitoringActions()
+            run_all(rule_list=l,
+                defined_variables=module.CustomMonitoringVariables(monitoring,patient),
+                defined_actions=monitoringActions,
+                stop_on_first_trigger=False
+            )
+            if monitoringActions.alarm:
+                if Alarm.objects.filter(alarm=monitoringActions.name,patientId=patient.id,solved=False).first() is None:
+                    alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
+                    alarm.save()
             
     else:
-        monitoringActions = MonitoringActions()
-        run_all(rule_list=engRules,
-            defined_variables=MonitoringVariables(monitoring,patient),
-            defined_actions=monitoringActions,
-            stop_on_first_trigger=False
-        )
-        if monitoringActions.alarm:
-            alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
-            alarm.save()
+        for rule in engRules:
+            l = []
+            l.append(rule)
+            monitoringActions = MonitoringActions()
+            run_all(rule_list=l,
+                defined_variables=MonitoringVariables(monitoring,patient),
+                defined_actions=monitoringActions,
+                stop_on_first_trigger=False
+            )
+            if monitoringActions.alarm:
+                if Alarm.objects.filter(alarm=monitoringActions.name,patientId=patient.id,solved=False).first() is None:
+                    alarm  = Alarm.objects.create(alarm=monitoringActions.name,patientId=patient.id,patient=patient.name+" "+patient.surname,solved=False)
+                    alarm.save()
     
     return HttpResponse(status=200)
 

@@ -113,12 +113,14 @@ def diseaselistPage(request):
     for rule in rules:
         engRules.append(json.loads(rule.content))
     for disease in Disease.objects.all():
+        #print(disease.name)
         diseaseActions = DiseasesActions()
         run_all(rule_list=engRules,
             defined_variables=DiseasesVariables(diagnosis,disease),
             defined_actions=diseaseActions,
-            stop_on_first_trigger=False
+            stop_on_first_trigger=True
            )
+        #print(diseaseActions.show)
         if diseaseActions.show:
             diseasesRaw.append((disease,diseaseActions.correctSyndromes))
     for rawDis in sorted(diseasesRaw,key= lambda element:element[1],reverse=True):
@@ -224,7 +226,7 @@ def diagnoze(request):
     if highTmp==False:
         tmp = 36
     else:
-        tmp = request.GET.get("temp")
+        tmp = request.POST.get("temp")
         if tmp == "":
             tmp = 36
         else:
