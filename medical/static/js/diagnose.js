@@ -15,7 +15,7 @@ $('#hadTemp').change(function(){
     if(this.checked) {
         $(this).prop("value", 'True');
     }else{
-        $(this).prop("value", 'False');
+        $(this).prop("value", '');
     }
     
 });

@@ -192,6 +192,7 @@ def diseaseFinder(request):
     if my_file.is_file():
         module = import_module('.custom_variables_d',package="diagnostics")
         for disease in Disease.objects.all():
+            print(disease.name)
             diseaseVariables = module.CustomDiseaseVariables(diagnosis,disease,helper)
             diseaseActions = DiseaseActions(helper,diseaseVariables)
             run_all(rule_list=engRules,
@@ -199,6 +200,9 @@ def diseaseFinder(request):
                 defined_actions=diseaseActions,
                 stop_on_first_trigger=False
             )
+            print("Best:"+str(helper.diseaseName))
+            print("Best:"+str(helper.bestPercent))
+            print("====")
     else:
         for disease in Disease.objects.all():
             diseaseVariables = DiseaseVariables(diagnosis,disease,helper)

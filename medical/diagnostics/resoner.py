@@ -175,7 +175,9 @@ class DiseaseVariables(BaseVariables):
         return self.diagnosis.temp
     @select_multiple_rule_variable(label="Name of current disease",options=getNamesList(Disease.objects.all()))
     def getDiseaseName(self):
-        return self.disease.name
+        l = []
+        l.append(self.disease.name)
+        return l
     @boolean_rule_variable(label="Patient has temperature")
     def hasTemperature(self):
         return self.diagnosis.highTemp
@@ -192,7 +194,7 @@ class DiseaseVariables(BaseVariables):
         results = []
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
-            for symptom in diagnostics.symptoms:
+            for symptom in diagnostics.symptoms.all():
                 if symptom.name == symptomName:
                     results.append(diagnostics.id)
                     break
@@ -219,7 +221,7 @@ class DiseaseVariables(BaseVariables):
         timeFrame = datetime.now() - timedelta(days = days)
         for diagnostics in self.diagnosis.patient.diagnosis_set.filter(time__gt=timeFrame):
             for medicine in diagnostics.medicine.all():
-                if medicine is not None and medicine.medtype == typeOfMedicine:
+                if medicine is not None and medicine.medtype == Medicine.Type_DICT[typeOfMedicine]:
                     results.append(diagnostics.id)
                     break
         return len(results)
@@ -235,13 +237,13 @@ class DiseaseVariables(BaseVariables):
                 if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of symptoms connected to most likely diagnosed disease")
+    #@numeric_rule_variable(label="Number of symptoms connected to most likely diagnosed disease")
     def getBestSyndCount(self):
         return self.helper.bestRegSyndCount + self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Probability connected to diagnosing current disease")
     def getPercent(self):
         return ((self.getSyndCount()/(len(self.disease.regularsympt.all())+len(self.disease.strongsympt.all())))*100)
-    @numeric_rule_variable(label="Probability connected to diagnosing most likely diagnosed disease")
+    #@numeric_rule_variable(label="Probability connected to diagnosing most likely diagnosed disease")
     def getBestPercent(self):
         return self.helper.bestPercent
     @numeric_rule_variable(label="Number of strong symptoms connected to current disease")
@@ -252,7 +254,7 @@ class DiseaseVariables(BaseVariables):
                 if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of strong symptoms connected to most likely diagnosed disease")
+    #@numeric_rule_variable(label="Number of strong symptoms connected to most likely diagnosed disease")
     def getBestSpecSyndCount(self):
         return self.helper.bestStrSyndCount
     @numeric_rule_variable(label="Number of regular symptoms connected to current disease")
@@ -263,10 +265,10 @@ class DiseaseVariables(BaseVariables):
                 if symptom.name == dsynd.name:
                     res = res + 1
         return res
-    @numeric_rule_variable(label="Number of regular symptoms connected to most likely diagnosed disease")
+    #@numeric_rule_variable(label="Number of regular symptoms connected to most likely diagnosed disease")
     def getBestRegSyndCount(self):
         return self.helper.bestRegSyndCount
-    @numeric_rule_variable(label="Name of most likely diagnosed disease")
+    #@numeric_rule_variable(label="Name of most likely diagnosed disease")
     def getBestDiseaseName(self):
         return int(self.helper.diseaseName)
 
@@ -283,6 +285,8 @@ class DiseaseActions(BaseActions):
         self.helper.bestPercent = self.variables.getPercent()
     @rule_action(label="Set current disease as most likely diagnosed disease if percentage of likeliness is higher than current best")
     def setBestSsyn(self):
+        print("Like: "+str(self.variables.getSyndCount())+"/"+str(len(self.variables.disease.regularsympt.all())+len(self.variables.disease.strongsympt.all())))
+        print("Like: "+str(self.variables.getPercent()))
         if self.variables.getPercent()>self.helper.bestPercent:
             self.setDiseaseName()
     @rule_action(label="Set current disease as most likely diagnosed disease if strong symptom count is higher than current best")
@@ -295,11 +299,14 @@ class DiseaseActions(BaseActions):
             self.setDiseaseName()
     @rule_action(label="Set current disease as most likely diagnosed disease if percentage(calculated after addition of completed complex parameters) of likeliness is higher than current best",params={'completed':FIELD_NUMERIC})
     def setBestcomplex(self,completed):
-        if ((self.variables.getSyndCount()+completed)/((len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all()))*100))>self.helper.bestPercent:
+        completed = int(completed)
+        print("Like: "+str(self.variables.getSyndCount()+completed)+"/"+str(len(self.variables.disease.regularsympt.all())+len(self.variables.disease.strongsympt.all())))
+        print("Like: "+str(((self.variables.getSyndCount()+completed)/(len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all())))*100))
+        if ((self.variables.getSyndCount()+completed)/(len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all())))*100>self.helper.bestPercent:
             self.helper.diseaseName = self.variables.disease.name
             self.helper.bestStrSyndCount = self.variables.getSpecSyndCount()
             self.helper.bestRegSyndCount = self.variables.getRegSyndCount()
-            self.helper.bestPercent = ((self.variables.getSyndCount()+completed)/((len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all()))*100))
+            self.helper.bestPercent = ((self.variables.getSyndCount()+completed)/(len(self.variables.disease.strongsympt.all())+len(self.variables.disease.regularsympt.all())))*100
 
 #for finding patient data rules
 class PatientVariables(BaseVariables):
